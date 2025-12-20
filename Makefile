@@ -1,4 +1,4 @@
-.PHONY: fmt lint all watch
+.PHONY: fmt lint all watch codegen
 
 fmt:
 	ruff check --select I --fix
@@ -10,5 +10,7 @@ lint:
 
 all: fmt lint
 
-watch:
-	on-change -e 'wadwise/web/src/**' -e 'wadwise/web/node_modules/**' wadwise -- daemon python main.py -b 0.0.0.0
+diagen/props.py: diagen/props-gen.py
+	python diagen/props-gen.py
+
+codegen: diagen/props.py

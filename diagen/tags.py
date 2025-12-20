@@ -5,11 +5,12 @@ from typing import TYPE_CHECKING, Callable, Mapping, Protocol
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
+from .props import Props, Tag, TagTotal
 
 if TYPE_CHECKING:
     from .nodes import Node
 
-Tag = Mapping[str, object]
+RawTag = Mapping[str, object]
 
 
 class Layout(Protocol):
@@ -42,41 +43,22 @@ def get_style(style: str | dict[str, object] | None) -> dict[str, object]:
     return result
 
 
-class Props(dict[str, object]):
-    direction: int
-    layout: Layout
-    size: tuple[float, float]
-    padding: tuple[float, float, float, float]
-    gap: tuple[float, float]
-    virtual: bool
-    align: tuple[float | None, float | None]
-    items_align: tuple[float, float]
-
-    grid_columns: int | None
-    grid_col: tuple[int, int] | None
-
-    # drawio
-    id: str
-    link: str | None
-    style: dict[str, object] | str | None
-    label_formatter: Callable[['Props', list[str]], str]
-
-    __getattr__ = dict.__getitem__
-
-
 def default_label_formatter(props: Props, label: list[str]) -> str:
     return '\n'.join(label)
+
+
+RuleValue = Callable[[str, RawTag], RawTag]
 
 
 @dataclass
 class rule:
     prefix: str
-    fn: Callable[[str, Tag], Tag]
+    fn: RuleValue
     has_value: bool = True
 
 
-def setScale(name: str, scale_name: str, *pos: int) -> Callable[[str, Tag], Tag]:
-    def inner(value: str, current: Tag) -> Tag:
+def setScale(name: str, scale_name: str, *pos: int) -> RuleValue:
+    def inner(value: str, current: RawTag) -> RawTag:
         v = float(value) * current[scale_name]  # type: ignore[operator]
         if pos:
             result = list(current[name])  # type: ignore[call-overload]
@@ -89,8 +71,8 @@ def setScale(name: str, scale_name: str, *pos: int) -> Callable[[str, Tag], Tag]
     return inner
 
 
-def setGrid(name: str) -> Callable[[str, Tag], Tag]:
-    def inner(value: str, current: Tag) -> Tag:
+def setGrid(name: str) -> RuleValue:
+    def inner(value: str, current: RawTag) -> RawTag:
         h, sep, t = value.partition(':')
         start = int(h)
         if sep:
@@ -110,8 +92,8 @@ def setGrid(name: str) -> Callable[[str, Tag], Tag]:
     return inner
 
 
-def setAlign(name: str, pos: int) -> Callable[[str, Tag], Tag]:
-    def inner(value: str, current: Tag) -> Tag:
+def setAlign(name: str, pos: int) -> RuleValue:
+    def inner(value: str, current: RawTag) -> RawTag:
         if value == 'start':
             v = -1.0
         elif value == 'center':
@@ -164,7 +146,7 @@ def rule_map() -> dict[str, rule]:
 
 
 @functools.cache
-def rule_fn_value(tag: str) -> tuple[Callable[[str, Tag], Tag], str] | None:
+def rule_fn_value(tag: str) -> tuple[RuleValue, str] | None:
     m = rule_re().match(tag)
     if not m:
         return None
@@ -190,13 +172,13 @@ def resolve_tags(tags: list[str] | str, result: Props | None = None) -> Props:
     return result
 
 
-def merge(result: Props, data: Tag) -> None:
+def merge(result: Props, data: RawTag) -> None:
     style = {**get_style(result.get('style')), **get_style(data.get('style'))}  # type: ignore[arg-type]
     result.update(data, style=style)
     result.pop('tag', None)
 
 
-def resolve_props(result: Props, *props: Tag) -> None:
+def resolve_props(result: Props, *props: RawTag) -> None:
     for p in props:
         ttag: str | list[str]
         if ttag := p.get('tag'):  # type: ignore[assignment]
@@ -204,23 +186,25 @@ def resolve_props(result: Props, *props: Tag) -> None:
         merge(result, p)
 
 
-tagmap: dict[str, Tag] = {
-    'root': {
-        'direction': 0,
-        'layout': BoxLayout,
-        'size': (-1, -1),
-        'padding': (0, 0, 0, 0),
-        'gap': (0, 0),
-        'scale': 4,
-        'virtual': False,
-        'link': None,
-        'style': {},
-        'label_formatter': default_label_formatter,
-        'items_align': (0, 0),
-        'align': (None, None),
-        'grid_columns': None,
-        'grid_col': None,
-    },
+tagmap: dict[str, Tag | TagTotal] = {
+    'root': TagTotal(
+        {
+            'direction': 0,
+            'layout': BoxLayout,
+            'size': (-1, -1),
+            'padding': (0, 0, 0, 0),
+            'gap': (0, 0),
+            'scale': 4,
+            'virtual': False,
+            'link': None,
+            'style': {},
+            'label_formatter': default_label_formatter,
+            'items_align': (0, 0),
+            'align': (None, None),
+            'grid_columns': None,
+            'grid_col': None,
+        }
+    ),
     'dh': {'direction': 0},
     'dv': {'direction': 1},
     'virtual': {'virtual': True},

@@ -1,7 +1,8 @@
 from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
-from .tags import Props, Tag, resolve_props
+from .props import Props, Tag
+from .tags import resolve_props
 
 _children_stack: list[list['Node']] = []
 
@@ -24,13 +25,6 @@ class Node:
 
         if _children_stack:
             _children_stack[-1].append(self)
-
-    # @property
-    # def layout(self) -> Layout:
-    #     if self.props.layout == 'grid':
-    #         return GridLayout
-    #     else:
-    #         return BoxLayout
 
     def align(self, parent: 'Node') -> tuple[float, float]:
         a0, a1 = self.props.align

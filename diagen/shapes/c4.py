@@ -1,5 +1,6 @@
 from .. import root
-from ..tags import Props, Tag, tagmap
+from ..props import Props, Tag
+from ..tags import tagmap
 
 
 def c4_label_fmt(props: Props, label: list[str]) -> str:

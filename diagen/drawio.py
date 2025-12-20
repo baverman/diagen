@@ -6,7 +6,7 @@ from itertools import count
 from urllib import parse
 
 from .nodes import Node
-from .tags import Props
+from .props import Props
 
 element = namedtuple('element', 'tag attrs children')
 
