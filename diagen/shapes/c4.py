@@ -1,4 +1,4 @@
-from ..layout import root
+from .. import root
 from ..tags import Props, Tag, tagmap
 
 

@@ -1,9 +1,22 @@
 import functools
 import re
 from dataclasses import dataclass
-from typing import Callable, Mapping
+from typing import TYPE_CHECKING, Callable, Mapping, Protocol
+
+from .layouts.box import BoxLayout
+from .layouts.grid import GridLayout
+
+if TYPE_CHECKING:
+    from .nodes import Node
 
 Tag = Mapping[str, object]
+
+
+class Layout(Protocol):
+    def size(self, node: 'Node', axis: int) -> float: ...
+
+    def arrange(self, node: 'Node') -> None: ...
+
 
 _smap_cache: dict[str, dict[str, object]] = {}
 
@@ -31,7 +44,7 @@ def get_style(style: str | dict[str, object] | None) -> dict[str, object]:
 
 class Props(dict[str, object]):
     direction: int
-    layout: str
+    layout: Layout
     size: tuple[float, float]
     padding: tuple[float, float, float, float]
     gap: tuple[float, float]
@@ -130,7 +143,7 @@ rules = [
     rule('gap', setScale('gap', 'scale', 0, 1)),
     rule('gapx', setScale('gap', 'scale', 0)),
     rule('gapy', setScale('gap', 'scale', 1)),
-    rule('grid', lambda value, _: {'layout': 'grid', 'grid_columns': int(value)}),
+    rule('grid', lambda value, _: {'layout': GridLayout, 'grid_columns': int(value)}),
     rule('col', setGrid('col')),
     rule('align', setAlign('align', 0)),
     rule('valign', setAlign('align', 1)),
@@ -194,7 +207,7 @@ def resolve_props(result: Props, *props: Tag) -> None:
 tagmap: dict[str, Tag] = {
     'root': {
         'direction': 0,
-        'layout': 'box',
+        'layout': BoxLayout,
         'size': (-1, -1),
         'padding': (0, 0, 0, 0),
         'gap': (0, 0),
@@ -212,5 +225,5 @@ tagmap: dict[str, Tag] = {
     'dv': {'direction': 1},
     'virtual': {'virtual': True},
     'non-virtual': {'virtual': False},
-    'grid': {'layout': 'grid'},
+    'grid': {'layout': GridLayout},
 }

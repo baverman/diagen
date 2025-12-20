@@ -1,6 +1,6 @@
 import pytest
 
-from diagen.layout import grid, node, stack, vstack
+from diagen import grid, node, stack, vstack
 from diagen.tags import tagmap
 
 
