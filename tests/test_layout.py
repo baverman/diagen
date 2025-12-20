@@ -1,6 +1,6 @@
 import pytest
 
-from diagen.layout import node, stack, vstack
+from diagen.layout import grid, node, stack, vstack
 from diagen.tags import tagmap
 
 
@@ -30,3 +30,42 @@ def test_vstack():
     assert s.position == (0, 0)
     assert n1.position == (1.5, 1)
     assert n2.position == (1, 4)
+
+
+def test_stack_items_align():
+    s = stack['items-align-start'](n1 := node['w-1 h-1'](), n2 := node['w-1 h-3']())
+
+    s.arrange()
+    assert n1.position == (0, 0)
+    assert n2.position == (1, 0)
+
+
+def test_stack_align():
+    s = stack['items-align-start'](n1 := node['w-1 h-1 align-end'](), n2 := node['w-1 h-3']())
+
+    s.arrange()
+    assert n1.position == (0, 2)
+    assert n2.position == (1, 0)
+
+
+def test_grid():
+    with grid['p-1 gap-1'] as s:
+        n11 = node['w-1 h-1']()
+        n12 = node['w-1 h-3']()
+        n21 = node['col-1 w-3 h-1']()
+        n22 = node['w-3 h-3']()
+
+    s.arrange()
+    assert n11.position == (2, 2)
+    assert n12.position == (6, 1)
+    assert n21.position == (1, 6)
+    assert n22.position == (5, 5)
+
+
+def test_context_manager():
+    with stack as s:
+        n1 = node()
+        n2 = stack(n3 := node())
+
+    assert s.children == [n1, n2]
+    assert n2.children == [n3]

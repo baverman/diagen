@@ -1,8 +1,6 @@
 # TODO
 
 * Create some diagrams
-* Grid layout
-  - align/valign
 * Type node factory call args
 * Use fake nodes for multiple side edge ports to avoid specifying coordinates.
   It could allow to specify start/end spacing!!!

@@ -45,6 +45,14 @@ class Node:
         else:
             return BoxLayout
 
+    def align(self, parent: 'Node') -> tuple[float, float]:
+        a0, a1 = self.props.align
+        if a0 is None:
+            a0 = parent.props.items_align[0]
+        if a1 is None:
+            a1 = parent.props.items_align[1]
+        return a0, a1
+
     def __enter__(self) -> Self:
         _children_stack.append([])
         return self
@@ -80,6 +88,9 @@ class Node:
 
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
+
+    def __repr__(self) -> str:
+        return f'Node(size={self.size})'
 
 
 class NodeFactory:
@@ -146,11 +157,8 @@ class BoxLayout:
 
         c += node.props.padding[a]
         for it in node.children:
-            align = it.props.self_align
-            if align is None:
-                align = node.props.align
-
-            it.position = dtup2(a, c, oc + (node.size[o] - it.size[o]) / 2 * (align + 1))
+            align = it.align(node)
+            it.position = dtup2(a, c, oc + (node.size[o] - it.size[o]) / 2 * (align[0] + 1))
             c += node.props.gap[a] + it.size[a]
 
 
@@ -192,15 +200,15 @@ class GridLayout:
             if ce <= 0:
                 ce = (max_cols or 0) + 1 + ce
             ce = max(cs + 1, min(ce, (max_cols or 0) + 1))
-            if ce <= (c + 1):
+            if cs < (c + 1):
                 r += 1
 
             cell = Cell((cs - 1, r), (ce - cs, 1), it)
             cells.append(cell)
             for cc in range(cell.size[0]):
-                cols.setdefault(c + cc, []).append(cell)
+                cols.setdefault(cell.pos[0] + cc, []).append(cell)
             for rr in range(cell.size[1]):
-                rows.setdefault(r + rr, []).append(cell)
+                rows.setdefault(cell.pos[1] + rr, []).append(cell)
 
             c = ce - 1
             if max_cols is not None and c >= max_cols:
@@ -240,12 +248,13 @@ class GridLayout:
         g = node.props.gap
 
         for it in cells:
+            align = it.node.align(node)
             s = ccol[it.pos[0]], crow[it.pos[1]]
             bw = ccol[it.pos[0] + it.size[0]] - s[0] - g[0]
             bh = crow[it.pos[1] + it.size[1]] - s[1] - g[1]
             pos = (
-                c[0] + s[0] + (bw - it.node.size[0]) / 2,
-                c[1] + s[1] + (bh - it.node.size[1]) / 2,
+                c[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
+                c[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
             )
             it.node.position = pos
 
@@ -255,5 +264,6 @@ _children_stack: list[list[Node]] = []
 root = NodeFactory()['root']
 stack = root['dh virtual']
 vstack = root['dv virtual']
+grid = root['grid virtual']
 node = root['w-24 h-12']
 group = root['p-4 gap-24']

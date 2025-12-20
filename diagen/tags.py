@@ -36,8 +36,8 @@ class Props(dict[str, object]):
     padding: tuple[float, float, float, float]
     gap: tuple[float, float]
     virtual: bool
-    align: float
-    self_align: float | None
+    align: tuple[float | None, float | None]
+    items_align: tuple[float, float]
 
     grid_columns: int | None
     grid_col: tuple[int, int] | None
@@ -97,6 +97,25 @@ def setGrid(name: str) -> Callable[[str, Tag], Tag]:
     return inner
 
 
+def setAlign(name: str, pos: int) -> Callable[[str, Tag], Tag]:
+    def inner(value: str, current: Tag) -> Tag:
+        if value == 'start':
+            v = -1.0
+        elif value == 'center':
+            v = 0.0
+        elif value == 'end':
+            v = 1.0
+        else:
+            v = float(value)
+
+        if pos == 0:
+            return {name: (v, current[name][1])}  # type: ignore[index]
+        else:
+            return {name: (current[name][0], v)}  # type: ignore[index]
+
+    return inner
+
+
 rules = [
     rule('p', setScale('padding', 'scale', 0, 1, 2, 3)),
     rule('px', setScale('padding', 'scale', 0, 2)),
@@ -113,6 +132,10 @@ rules = [
     rule('gapy', setScale('gap', 'scale', 1)),
     rule('grid', lambda value, _: {'layout': 'grid', 'grid_columns': int(value)}),
     rule('col', setGrid('col')),
+    rule('align', setAlign('align', 0)),
+    rule('valign', setAlign('align', 1)),
+    rule('items-align', setAlign('items_align', 0)),
+    rule('items-valign', setAlign('items_align', 1)),
 ]
 
 
@@ -180,8 +203,8 @@ tagmap: dict[str, Tag] = {
         'link': None,
         'style': {},
         'label_formatter': default_label_formatter,
-        'align': 0,
-        'self_align': None,
+        'items_align': (0, 0),
+        'align': (None, None),
         'grid_columns': None,
         'grid_col': None,
     },
@@ -189,11 +212,5 @@ tagmap: dict[str, Tag] = {
     'dv': {'direction': 1},
     'virtual': {'virtual': True},
     'non-virtual': {'virtual': False},
-    'align-start': {'align': -1},
-    'align-end': {'align': 1},
-    'align-center': {'align': 0},
-    'self-align-start': {'self_align': -1},
-    'self-align-end': {'self_align': 1},
-    'self-align-center': {'self_align': 0},
     'grid': {'layout': 'grid'},
 }
