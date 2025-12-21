@@ -1,9 +1,9 @@
 from .. import root
-from ..props import Props, Tag
-from ..tags import tagmap
+from ..props import NodeProps
+from ..tags import AnyTag, tagmap
 
 
-def c4_label_fmt(props: Props, label: list[str]) -> str:
+def c4_label_fmt(props: NodeProps, label: list[str]) -> str:
     if not label:
         return ''
 
@@ -17,7 +17,7 @@ def c4_label_fmt(props: Props, label: list[str]) -> str:
     )
 
 
-TAGS: dict[str, Tag] = {
+TAGS: dict[str, AnyTag] = {
     'c4-base': {
         'label_formatter': c4_label_fmt,
         'style': 'html=1;fontSize=12',

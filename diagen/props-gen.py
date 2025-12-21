@@ -15,7 +15,13 @@ NODE_PROPS = """\
     # drawio
     link: str | None
     style: dict[str, object] | str | None
-    label_formatter: Callable[['Props', list[str]], str]
+    label_formatter: Callable[['NodeProps', list[str]], str]
+""".rstrip()
+
+EDGE_PROPS = """\
+    scale: float
+    style: dict[str, object] | str | None
+    label_formatter: Callable[['EdgeProps', list[str]], str]
 """.rstrip()
 
 BODY = f"""\
@@ -25,19 +31,37 @@ if TYPE_CHECKING:
     from .tags import Layout
 
 
-class Props(dict[str, object]):
+class NodeProps(dict[str, object]):
 {NODE_PROPS}
 
     id: str
     __getattr__ = dict.__getitem__
 
 
-class TagTotal(TypedDict):
+class NodeTagDefault(TypedDict):
 {NODE_PROPS}
 
 
-class Tag(TypedDict, total=False):
+class NodeTag(TypedDict, total=False):
 {NODE_PROPS}
+
+    id: str
+    tag: str
+
+
+class EdgeProps(dict[str, object]):
+{EDGE_PROPS}
+
+    id: str
+    __getattr__ = dict.__getitem__
+
+
+class EdgeTagDefault(TypedDict):
+{EDGE_PROPS}
+
+
+class EdgeTag(TypedDict, total=False):
+{EDGE_PROPS}
 
     id: str
     tag: str

@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from .tags import Layout
 
 
-class Props(dict[str, object]):
+class NodeProps(dict[str, object]):
     direction: int
     layout: 'Layout'
     scale: float
@@ -21,13 +21,13 @@ class Props(dict[str, object]):
     # drawio
     link: str | None
     style: dict[str, object] | str | None
-    label_formatter: Callable[['Props', list[str]], str]
+    label_formatter: Callable[['NodeProps', list[str]], str]
 
     id: str
     __getattr__ = dict.__getitem__
 
 
-class TagTotal(TypedDict):
+class NodeTagDefault(TypedDict):
     direction: int
     layout: 'Layout'
     scale: float
@@ -44,10 +44,10 @@ class TagTotal(TypedDict):
     # drawio
     link: str | None
     style: dict[str, object] | str | None
-    label_formatter: Callable[['Props', list[str]], str]
+    label_formatter: Callable[['NodeProps', list[str]], str]
 
 
-class Tag(TypedDict, total=False):
+class NodeTag(TypedDict, total=False):
     direction: int
     layout: 'Layout'
     scale: float
@@ -64,7 +64,31 @@ class Tag(TypedDict, total=False):
     # drawio
     link: str | None
     style: dict[str, object] | str | None
-    label_formatter: Callable[['Props', list[str]], str]
+    label_formatter: Callable[['NodeProps', list[str]], str]
+
+    id: str
+    tag: str
+
+
+class EdgeProps(dict[str, object]):
+    scale: float
+    style: dict[str, object] | str | None
+    label_formatter: Callable[['EdgeProps', list[str]], str]
+
+    id: str
+    __getattr__ = dict.__getitem__
+
+
+class EdgeTagDefault(TypedDict):
+    scale: float
+    style: dict[str, object] | str | None
+    label_formatter: Callable[['EdgeProps', list[str]], str]
+
+
+class EdgeTag(TypedDict, total=False):
+    scale: float
+    style: dict[str, object] | str | None
+    label_formatter: Callable[['EdgeProps', list[str]], str]
 
     id: str
     tag: str

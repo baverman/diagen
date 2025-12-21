@@ -5,12 +5,13 @@ from typing import TYPE_CHECKING, Callable, Mapping, Protocol
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
-from .props import Props, Tag, TagTotal
+from .props import EdgeProps, EdgeTag, EdgeTagDefault, NodeProps, NodeTag, NodeTagDefault
 
 if TYPE_CHECKING:
     from .nodes import Node
 
 RawTag = Mapping[str, object]
+AnyTag = NodeTag | NodeTagDefault | EdgeTag | EdgeTagDefault
 
 
 class Layout(Protocol):
@@ -43,7 +44,7 @@ def get_style(style: str | dict[str, object] | None) -> dict[str, object]:
     return result
 
 
-def default_label_formatter(props: Props, label: list[str]) -> str:
+def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> str:
     return '\n'.join(label)
 
 
@@ -155,9 +156,9 @@ def rule_fn_value(tag: str) -> tuple[RuleValue, str] | None:
     return rule_map()[prefix].fn, value
 
 
-def resolve_tags(tags: list[str] | str, result: Props | None = None) -> Props:
+def resolve_tags(tags: list[str] | str, result: NodeProps | None = None) -> NodeProps:
     if result is None:
-        result = Props({})
+        result = NodeProps({})
 
     if type(tags) is str:
         tags = [it.strip() for it in tags.split()]
@@ -172,13 +173,13 @@ def resolve_tags(tags: list[str] | str, result: Props | None = None) -> Props:
     return result
 
 
-def merge(result: Props, data: RawTag) -> None:
+def merge(result: NodeProps, data: RawTag) -> None:
     style = {**get_style(result.get('style')), **get_style(data.get('style'))}  # type: ignore[arg-type]
     result.update(data, style=style)
     result.pop('tag', None)
 
 
-def resolve_props(result: Props, *props: RawTag) -> None:
+def resolve_props(result: NodeProps, *props: RawTag) -> None:
     for p in props:
         ttag: str | list[str]
         if ttag := p.get('tag'):  # type: ignore[assignment]
@@ -186,24 +187,27 @@ def resolve_props(result: Props, *props: RawTag) -> None:
         merge(result, p)
 
 
-tagmap: dict[str, Tag | TagTotal] = {
-    'root': TagTotal(
-        {
-            'direction': 0,
-            'layout': BoxLayout,
-            'size': (-1, -1),
-            'padding': (0, 0, 0, 0),
-            'gap': (0, 0),
-            'scale': 4,
-            'virtual': False,
-            'link': None,
-            'style': {},
-            'label_formatter': default_label_formatter,
-            'items_align': (0, 0),
-            'align': (None, None),
-            'grid_columns': None,
-            'grid_col': None,
-        }
+tagmap: dict[str, AnyTag] = {
+    'root': NodeTagDefault(
+        direction=0,
+        layout=BoxLayout,
+        size=(-1, -1),
+        padding=(0, 0, 0, 0),
+        gap=(0, 0),
+        scale=4,
+        virtual=False,
+        link=None,
+        style={},
+        label_formatter=default_label_formatter,
+        items_align=(0, 0),
+        align=(None, None),
+        grid_columns=None,
+        grid_col=None,
+    ),
+    'edge-root': EdgeTagDefault(
+        scale=1.0,
+        style={},
+        label_formatter=default_label_formatter,
     ),
     'dh': {'direction': 0},
     'dv': {'direction': 1},

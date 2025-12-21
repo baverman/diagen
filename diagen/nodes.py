@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
-from .props import Props, Tag
+from .props import NodeProps, NodeTag
 from .tags import resolve_props
 
 _children_stack: list[list['Node']] = []
@@ -11,7 +11,7 @@ class Node:
     children: list['Node']
     parent: Union['Node', None]
 
-    def __init__(self, props: Props, *children: Union['Node', str]) -> None:
+    def __init__(self, props: NodeProps, *children: Union['Node', str]) -> None:
         self.parent = None
         self.props = props
         self.label = list(it for it in children if isinstance(it, str))
@@ -73,7 +73,7 @@ class Node:
 
 
 class NodeFactory:
-    def __init__(self, props: tuple[Tag, ...] = ()):
+    def __init__(self, props: tuple[NodeTag, ...] = ()):
         self.props = props
         self._cm_stack: list[Node] = []
 
@@ -81,7 +81,7 @@ class NodeFactory:
         return NodeFactory(self.props + ({'tag': tags},))
 
     def __call__(self, *args: Any) -> Node:
-        props: Tag | None
+        props: NodeTag | None
         children: tuple[Node | str, ...]
         if not args:
             props = None
@@ -93,7 +93,7 @@ class NodeFactory:
             props = args[0]
             children = args[1:]
 
-        fprops = Props({} if props is None else props)
+        fprops = NodeProps({} if props is None else props)
         resolve_props(fprops, *self.props)
         return Node(fprops, *children)
 

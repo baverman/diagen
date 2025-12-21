@@ -6,7 +6,7 @@ from itertools import count
 from urllib import parse
 
 from .nodes import Node
-from .props import Props
+from .props import NodeProps
 
 element = namedtuple('element', 'tag attrs children')
 
@@ -48,7 +48,7 @@ def node_element(node: Node) -> element:
 
 def make_model(node: Node) -> element:
     node.arrange()
-    root_node = Node(Props(id='__root__', virtual=False), node)
+    root_node = Node(NodeProps(id='__root__', virtual=False), node)
     root_node.position = (0, 0)
 
     root = element(
