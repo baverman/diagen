@@ -28,6 +28,13 @@ class Node:
         if _children_stack:
             _children_stack[-1].append(self)
 
+    @property
+    def origin(self) -> tuple[float, float]:
+        if self.props.virtual:
+            return self.position
+        else:
+            return (0, 0)
+
     def align(self, parent: 'Node') -> tuple[float, float]:
         a0, a1 = self.props.align
         if a0 is None:

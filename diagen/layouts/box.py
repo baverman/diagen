@@ -27,13 +27,10 @@ class BoxLayout:
         a = node.props.direction
         o = [1, 0][a]
 
-        if node.props.virtual:
-            c = node.position[a]
-            oc = node.position[o]
-        else:
-            oc = c = 0
+        origin = node.origin
+        oc = origin[o]
+        c = origin[a] + node.props.padding[a]
 
-        c += node.props.padding[a]
         for it in node.children:
             align = it.align(node)
             it.position = dtup2(a, c, oc + (node.size[o] - it.size[o]) / 2 * (align[0] + 1))

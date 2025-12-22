@@ -87,7 +87,7 @@ class GridLayout:
     @staticmethod
     def arrange(node: 'Node') -> None:
         cells, crow, ccol = GridLayout.cells(node)
-        c = node.position if node.props.virtual else (0, 0)
+        c = node.origin
         g = node.props.gap
 
         for it in cells:
