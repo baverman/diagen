@@ -1,13 +1,12 @@
 import pytest
 
-from diagen import grid, node, stack, vstack
-from diagen.tags import tagmap
+from diagen import grid, node, stack, tags, vstack
 
 
 @pytest.fixture(autouse=True)
 def setup(mocker):
-    mocker.patch.dict(tagmap['root'])
-    tagmap['root']['scale'] = 1
+    mocker.patch.dict(tags.node._tagmap['root'])
+    tags.node._tagmap['root']['scale'] = 1
 
 
 def test_hstack():

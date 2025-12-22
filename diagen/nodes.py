@@ -2,7 +2,7 @@ from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
 from .props import EdgeProps, EdgeTag, NodeProps, NodeTag
-from .tags import resolve_props
+from .tagmap import AnyEdgeTag, AnyNodeTag, TagMap
 
 _children_stack: list[list['Node']] = []
 
@@ -132,12 +132,13 @@ class Edge:
 
 
 class NodeFactory:
-    def __init__(self, props: tuple[NodeTag, ...] = ()):
+    def __init__(self, tagmap: TagMap[NodeProps, AnyNodeTag], props: tuple[NodeTag, ...] = ()):
         self.props = props
+        self.tagmap = tagmap
         self._cm_stack: list[Node] = []
 
     def __getitem__(self, tags: str) -> 'NodeFactory':
-        return NodeFactory(self.props + ({'tag': tags},))
+        return NodeFactory(self.tagmap, self.props + ({'tag': tags},))
 
     def __call__(self, *args: Any) -> Node:
         props: NodeTag | None
@@ -153,7 +154,7 @@ class NodeFactory:
             children = args[1:]
 
         fprops = NodeProps({} if props is None else props)
-        resolve_props(fprops, *self.props)
+        self.tagmap.resolve_props(fprops, *self.props)
         return Node(fprops, *children)
 
     def __enter__(self) -> Node:
@@ -167,11 +168,12 @@ class NodeFactory:
 
 
 class EdgeFactory:
-    def __init__(self, props: tuple[EdgeTag, ...] = ()):
+    def __init__(self, tagmap: TagMap[EdgeProps, AnyEdgeTag], props: tuple[EdgeTag, ...] = ()):
+        self.tagmap = tagmap
         self.props = props
 
     def __getitem__(self, tags: str) -> 'EdgeFactory':
-        return EdgeFactory(self.props + ({'tag': tags},))
+        return EdgeFactory(self.tagmap, self.props + ({'tag': tags},))
 
     def __call__(self, *args: Any) -> Edge:
         props: EdgeTag | None
@@ -187,5 +189,5 @@ class EdgeFactory:
             rest = args
 
         fprops = EdgeProps({} if props is None else props)
-        resolve_props(fprops, *self.props)
+        self.tagmap.resolve_props(fprops, *self.props)
         return Edge(fprops, *rest)
