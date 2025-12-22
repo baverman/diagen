@@ -1,4 +1,4 @@
-from .. import root
+from .. import edge_root, root
 from ..props import NodeProps
 from ..tags import AnyTag, tagmap
 
@@ -73,9 +73,12 @@ TAGS: dict[str, AnyTag] = {
         'tag': 'c4-base-node',
         'style': 'fillColor=#63BEF2;strokeColor=#2086C9;arcSize=7',
     },
+    'c4-edge-base': {
+        'style': 'edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;html=1;endArrow=classicThin'
+    },
     'c4-edge': {
-        'tag': 'edge-default c4-base',
-        'style': 'fontColor=#404040;strokeColor=#828282',
+        'tag': 'c4-base c4-edge-base',
+        'style': 'fontColor=#404040;strokeColor=#828282;perimeterSpacing=4',
     },
 }
 
@@ -91,3 +94,4 @@ Boundary = root['c4-boundary']
 Storage = root['c4-storage']
 Pod = root['c4-pod']
 Bus = root['c4-bus']
+edge = edge_root['c4-edge']

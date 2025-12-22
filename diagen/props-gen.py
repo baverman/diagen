@@ -14,13 +14,11 @@ NODE_PROPS = """\
 
     # drawio
     link: str | None
-    style: dict[str, object] | str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 """.rstrip()
 
 EDGE_PROPS = """\
     scale: float
-    style: dict[str, object] | str | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
 """.rstrip()
 
@@ -35,11 +33,14 @@ class NodeProps(dict[str, object]):
 {NODE_PROPS}
 
     id: str
+    style: dict[str, object]
     __getattr__ = dict.__getitem__
 
 
 class NodeTagDefault(TypedDict):
 {NODE_PROPS}
+
+    style: dict[str, object]
 
 
 class NodeTag(TypedDict, total=False):
@@ -47,17 +48,21 @@ class NodeTag(TypedDict, total=False):
 
     id: str
     tag: str
+    style: dict[str, object] | str | None
 
 
 class EdgeProps(dict[str, object]):
 {EDGE_PROPS}
 
     id: str
+    style: dict[str, object]
     __getattr__ = dict.__getitem__
 
 
 class EdgeTagDefault(TypedDict):
 {EDGE_PROPS}
+
+    style: dict[str, object]
 
 
 class EdgeTag(TypedDict, total=False):
@@ -65,6 +70,7 @@ class EdgeTag(TypedDict, total=False):
 
     id: str
     tag: str
+    style: dict[str, object] | str | None
 """
 
 if __name__ == '__main__':

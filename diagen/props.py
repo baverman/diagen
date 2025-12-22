@@ -20,10 +20,10 @@ class NodeProps(dict[str, object]):
 
     # drawio
     link: str | None
-    style: dict[str, object] | str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
     id: str
+    style: dict[str, object]
     __getattr__ = dict.__getitem__
 
 
@@ -43,8 +43,9 @@ class NodeTagDefault(TypedDict):
 
     # drawio
     link: str | None
-    style: dict[str, object] | str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
+
+    style: dict[str, object]
 
 
 class NodeTag(TypedDict, total=False):
@@ -63,32 +64,33 @@ class NodeTag(TypedDict, total=False):
 
     # drawio
     link: str | None
-    style: dict[str, object] | str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
     id: str
     tag: str
+    style: dict[str, object] | str | None
 
 
 class EdgeProps(dict[str, object]):
     scale: float
-    style: dict[str, object] | str | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
 
     id: str
+    style: dict[str, object]
     __getattr__ = dict.__getitem__
 
 
 class EdgeTagDefault(TypedDict):
     scale: float
-    style: dict[str, object] | str | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
+
+    style: dict[str, object]
 
 
 class EdgeTag(TypedDict, total=False):
     scale: float
-    style: dict[str, object] | str | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
 
     id: str
     tag: str
+    style: dict[str, object] | str | None

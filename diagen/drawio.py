@@ -3,9 +3,10 @@ import xml.etree.ElementTree as ET
 import zlib
 from collections import namedtuple
 from itertools import count
+from typing import Literal
 from urllib import parse
 
-from .nodes import Node
+from .nodes import Edge, Node, Port
 from .props import NodeProps
 
 element = namedtuple('element', 'tag attrs children')
@@ -46,6 +47,53 @@ def node_element(node: Node) -> element:
     return element('mxCell', attrs, [make_geom(node)])
 
 
+CONSTRAINT = ['west', 'north', 'east', 'south']
+
+
+def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> dict[str, object]:
+    return {f'{kind}PortContraint': CONSTRAINT[port.side]}
+
+
+def edge_element(edge: Edge) -> element:
+    geom = element('mxGeometry', {'as': 'geometry', 'relative': '1'}, [])
+    attrs = {
+        'edge': '1',
+        'id': edge.props.id,
+        'parent': edge.source.parent and edge.source.parent.props.id or '__root__',
+        'source': edge.source.props.id,
+        'target': edge.target.props.id,
+    }
+
+    if label := edge.get_label():
+        attrs['value'] = label
+
+    style = edge.props.style.copy()
+
+    if type(edge.source) is Port:
+        style.update(port_style(edge.source, 'source'))
+
+    if type(edge.target) is Port:
+        style.update(port_style(edge.target, 'target'))
+
+    attrs['style'] = style_to_str(style)
+
+    # if edge.offset:
+    #     geom.attrs['x'] = str(edge.offset[0])
+    #     geom.attrs['y'] = str(edge.offset[1])
+    #     geom.kids.append(element('mxPoint', {'as': 'offset'}, []))
+    #
+    # if edge.points:
+    #     # points = [element('mxPoint', {'x': str(edge.source.absx + x), 'y':
+    #         # str(edge.source.absy + y)}, [])
+    #     #           for x, y in edge.points]
+    #     points = [element('mxPoint', {'x': str(x), 'y': str(y)}, [])
+    #               for x, y in edge.points]
+    #     geom.kids.append(element('Array', {'as': 'points'}, points))
+    #     print(edge.source.x, points)
+
+    return element('mxCell', attrs, [geom])
+
+
 def make_model(node: Node) -> element:
     node.arrange()
     root_node = Node(NodeProps(id='__root__', virtual=False), node)
@@ -61,14 +109,19 @@ def make_model(node: Node) -> element:
     )
 
     children = []
-    # for it in context.edges:
-    #     children.append(it.as_graph())
 
     idconter = count()
+    edges = set()
     for it in root_node.walk():
+        edges.update(it.edges)
         if not it.props.get('id'):
             it.props['id'] = f'diagen-{next(idconter)}'
         children.append(node_element(it))
+
+    for edge in edges:
+        if not edge.props.get('id'):
+            edge.props['id'] = f'diagen-{next(idconter)}'
+        children.append(edge_element(edge))
 
     root.children.extend(reversed(children))
     attrs = {

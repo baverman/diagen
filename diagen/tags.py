@@ -156,7 +156,7 @@ def rule_fn_value(tag: str) -> tuple[RuleValue, str] | None:
     return rule_map()[prefix].fn, value
 
 
-def resolve_tags(tags: list[str] | str, result: NodeProps | None = None) -> NodeProps:
+def resolve_tags(tags: list[str] | str, result: NodeProps | EdgeProps | None = None) -> NodeProps:
     if result is None:
         result = NodeProps({})
 
@@ -170,16 +170,16 @@ def resolve_tags(tags: list[str] | str, result: NodeProps | None = None) -> Node
         else:
             resolve_props(result, tagmap[it])
 
-    return result
+    return result  # type: ignore[return-value]
 
 
-def merge(result: NodeProps, data: RawTag) -> None:
+def merge(result: NodeProps | EdgeProps, data: RawTag) -> None:
     style = {**get_style(result.get('style')), **get_style(data.get('style'))}  # type: ignore[arg-type]
     result.update(data, style=style)
     result.pop('tag', None)
 
 
-def resolve_props(result: NodeProps, *props: RawTag) -> None:
+def resolve_props(result: NodeProps | EdgeProps, *props: RawTag) -> None:
     for p in props:
         ttag: str | list[str]
         if ttag := p.get('tag'):  # type: ignore[assignment]

@@ -2,7 +2,7 @@
 python_version = "3.12"
 mypy_path = "stubs"
 strict = true
-packages = ["diagen"]
+packages = ["diagen", "test"]
 
 [tool.ruff]
 line-length = 100
@@ -14,7 +14,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint]
-ignore = ["E731", "E402"]
+ignore = ["E731", "E402", "E743"]
 
 [tool.coverage.run]
 source = ["diagen"]
