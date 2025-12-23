@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
@@ -100,23 +101,34 @@ class Node:
     def node_ref(self) -> 'Node':
         return self
 
+    @cached_property
+    def edge_order(self) -> list[dict['Edge', int]]:
+        result: list[dict['Edge', int]] = [{}, {}, {}, {}]
+        counter = [0, 0, 0, 0]
+        for it in self.edges:
+            for port in it.node_ports(self):
+                c = counter[port.side]
+                counter[port.side] += 1
+                result[port.side][it] = c
+        return result
 
+
+@dataclass
 class Port:
-    def __init__(self, source: Node, side: int):
-        self.source = source
-        self.side = side
+    node: Node
+    side: int
 
     @property
     def node_ref(self) -> Node:
-        return self.source
+        return self.node
 
     @property
     def parent(self) -> Node | None:
-        return self.source.parent
+        return self.node.parent
 
     @property
     def props(self) -> NodeProps:
-        return self.source.props
+        return self.node.props
 
 
 AnyEdgePort = Node | Port
@@ -136,6 +148,11 @@ class Edge:
 
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
+
+    def node_ports(self, node: Node) -> Iterable[Port]:
+        for it in (self.source, self.target):
+            if isinstance(it, Port) and it.node_ref is node:
+                yield it
 
 
 class NodeFactory:

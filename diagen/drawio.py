@@ -7,7 +7,8 @@ from typing import Literal
 from urllib import parse
 
 from .nodes import Edge, Node, Port
-from .props import NodeProps
+from .props import NodeProps, NodeTag
+from .utils import dtup2
 
 element = namedtuple('element', 'tag attrs children')
 
@@ -47,14 +48,40 @@ def node_element(node: Node) -> element:
     return element('mxCell', attrs, [make_geom(node)])
 
 
+def port_element(
+    edge: Edge, port: Port, axis: int, align: float, offset: tuple[float, float]
+) -> element:
+    node = port.node
+    o = [1, 0][axis]
+    attrs = {
+        'id': edge.props.id + '-' + node.props.id,
+        'parent': node.props.id,
+        'vertex': '1',
+        'style': 'container=0;fillColor=none;strokeColor=none',
+    }
+    port_node = Node(NodeProps(NodeTag(size=(3, 3))))
+    ac = node.origin[axis] + offset[0] * node.size[axis] - 1.5
+    oc = node.origin[o] + (node.size[o] - 3) / 2.0 * (align + 1) + offset[1]
+    port_node.position = dtup2(axis, ac, oc)
+    return element('mxCell', attrs, [make_geom(port_node)])
+
+
+def arrange_port(edge: Edge, port: Port) -> element:
+    edges = port.node.edge_order[port.side]
+    idx = edges[edge]
+    axis = 1 if port.side in (0, 2) else 0
+    align = -1 if port.side in (0, 1) else 1
+    return port_element(edge, port, axis, align, ((idx + 1) / (len(edges) + 1), 0))
+
+
 CONSTRAINT = ['west', 'north', 'east', 'south']
 
 
 def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> dict[str, object]:
-    return {f'{kind}PortContraint': CONSTRAINT[port.side]}
+    return {f'{kind}PortConstraint': CONSTRAINT[port.side]}
 
 
-def edge_element(edge: Edge) -> element:
+def edge_element(edge: Edge) -> list[element]:
     geom = element('mxGeometry', {'as': 'geometry', 'relative': '1'}, [])
     attrs = {
         'edge': '1',
@@ -69,11 +96,17 @@ def edge_element(edge: Edge) -> element:
 
     style = edge.props.style.copy()
 
-    if type(edge.source) is Port:
-        style.update(port_style(edge.source, 'source'))
+    result: list[element | None] = []
 
-    if type(edge.target) is Port:
+    if isinstance(edge.source, Port):
+        style.update(port_style(edge.source, 'source'))
+        result.append(el := arrange_port(edge, edge.source))
+        attrs['source'] = el.attrs['id']
+
+    if isinstance(edge.target, Port):
         style.update(port_style(edge.target, 'target'))
+        result.append(el := arrange_port(edge, edge.target))
+        attrs['target'] = el.attrs['id']
 
     attrs['style'] = style_to_str(style)
 
@@ -91,7 +124,8 @@ def edge_element(edge: Edge) -> element:
     #     geom.kids.append(element('Array', {'as': 'points'}, points))
     #     print(edge.source.x, points)
 
-    return element('mxCell', attrs, [geom])
+    result.append(element('mxCell', attrs, [geom]))
+    return list(filter(None, result))
 
 
 def make_model(node: Node) -> element:
@@ -121,7 +155,7 @@ def make_model(node: Node) -> element:
     for edge in edges:
         if not edge.props.get('id'):
             edge.props['id'] = f'diagen-{next(idconter)}'
-        children.append(edge_element(edge))
+        children.extend(edge_element(edge))
 
     root.children.extend(reversed(children))
     attrs = {
