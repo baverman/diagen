@@ -110,11 +110,11 @@ def edge_element(edge: Edge) -> list[element]:
 
     attrs['style'] = style_to_str(style)
 
-    # if edge.offset:
-    #     geom.attrs['x'] = str(edge.offset[0])
-    #     geom.attrs['y'] = str(edge.offset[1])
-    #     geom.kids.append(element('mxPoint', {'as': 'offset'}, []))
-    #
+    if edge.props.label_offset != (0, 0):
+        geom.attrs['x'] = str(edge.props.label_offset[0])
+        geom.attrs['y'] = str(edge.props.label_offset[1])
+        geom.children.append(element('mxPoint', {'as': 'offset'}, []))
+
     # if edge.points:
     #     # points = [element('mxPoint', {'x': str(edge.source.absx + x), 'y':
     #         # str(edge.source.absy + y)}, [])
@@ -152,12 +152,14 @@ def make_model(node: Node) -> element:
             it.props['id'] = f'diagen-{next(idconter)}'
         children.append(node_element(it))
 
+    children.reverse()
+
     for edge in edges:
         if not edge.props.get('id'):
             edge.props['id'] = f'diagen-{next(idconter)}'
         children.extend(edge_element(edge))
 
-    root.children.extend(reversed(children))
+    root.children.extend(children)
     attrs = {
         'arrows': '1',
         'connect': '1',

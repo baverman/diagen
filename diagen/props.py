@@ -74,6 +74,7 @@ class NodeTag(TypedDict, total=False):
 class EdgeProps(dict[str, object]):
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
+    label_offset: tuple[float, float]
 
     id: str
     style: dict[str, object]
@@ -83,6 +84,7 @@ class EdgeProps(dict[str, object]):
 class EdgeTagDefault(TypedDict):
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
+    label_offset: tuple[float, float]
 
     style: dict[str, object]
 
@@ -90,6 +92,7 @@ class EdgeTagDefault(TypedDict):
 class EdgeTag(TypedDict, total=False):
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
+    label_offset: tuple[float, float]
 
     id: str
     tag: str

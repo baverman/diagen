@@ -83,6 +83,19 @@ def setAlign(name: str, pos: int) -> RuleValue:
     return inner
 
 
+def setEdgeLabelOffset(value: str, current: RawTag) -> RawTag:
+    result = list(current['label_offset'])  # type: ignore[call-overload]
+    h, _, t = value.partition('/')
+
+    if h:
+        result[0] = float(h)
+
+    if t:
+        result[1] = float(t) * current['scale']  # type: ignore[operator]
+
+    return {'label_offset': tuple(result)}
+
+
 node = TagMap[NodeProps, AnyNodeTag]()
 
 node.update(
@@ -93,7 +106,7 @@ node.update(
             size=(-1, -1),
             padding=(0, 0, 0, 0),
             gap=(0, 0),
-            scale=4,
+            scale=4.0,
             virtual=False,
             link=None,
             style={},
@@ -141,9 +154,12 @@ edge = TagMap[EdgeProps, AnyEdgeTag]()
 edge.update(
     {
         'root': EdgeTagDefault(
-            scale=1.0,
+            scale=4.0,
             style={},
             label_formatter=default_label_formatter,
+            label_offset=(0, 0),
         )
     }
 )
+
+edge.add_rules([rule('label', setEdgeLabelOffset)])

@@ -36,12 +36,12 @@ def test_full(render):
             packages = System('Packages', 'packages.company.com')
             cdn = System('File storage', 'cdn.company.com')
 
-    edge(ext_user.t, portal.l, 'Creates registration keys', 'Browser')
-    edge(ext_host.r, portal.l, 'Checks registration', 'cli, HTTP')
-    edge(ext_host.r, packages, 'Downloads patches', 'cli, HTTP')
-    edge(ext_host.b, cdn.l, 'Downloads package updates', 'yum, apt, HTTP')
-    edge(packages.t, portal.b, 'Pushes usage data', 'Postgres')
-    edge(portal.b, packages.t, 'Pushes license updates', 'python script, SSH')
+    edge['label-0.2'](ext_user.t, portal.l, 'Creates registration keys', 'Browser')
+    edge['label--0.2/12'](ext_host.r, portal.l, 'Checks registration', 'cli, HTTP')
+    edge['label--0.3'](ext_host.r, packages, 'Downloads patches', 'cli, HTTP')
+    edge['label-0.2'](ext_host.b, cdn.l, 'Downloads package updates', 'yum, apt, HTTP')
+    edge['label-0.2/8'](packages.t, portal.b, 'Pushes usage data', 'Postgres')
+    edge['label-0.2/6'](portal.b, packages.t, 'Pushes license updates', 'python script, SSH')
 
     render('showcase.drawio', s)
 
