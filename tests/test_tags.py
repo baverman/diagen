@@ -25,3 +25,13 @@ def test_resolve_tags(mocker):
     resolve_tags('some', result)
     assert result.padding == (8, 4, 8, 4)
     assert result.gap == 20
+
+
+def test_grid_col_setter():
+    assert tags.setGridCol('col')('1', {}) == {'grid_col': (1, 2)}
+    assert tags.setGridCol('col')('1:', {}) == {'grid_col': (1, 0)}
+    assert tags.setGridCol('col')('1:-2', {}) == {'grid_col': (1, -2)}
+
+    assert tags.setGridCol('col')('1/2', {}) == {'grid_col': (1, 3)}
+    assert tags.setGridCol('col')('1/0', {}) == {'grid_col': (1, 1)}
+    assert tags.setGridCol('col')('1/-1', {}) == {'grid_col': (1, 0)}

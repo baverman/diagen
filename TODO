@@ -2,7 +2,6 @@
 
 * Typed rule value setter (it seems it's possible to use default total typed dict)
 * Explicit port order control
-* Refine grid-col rule. a:b syntax should have slice semantic, a/b should have start/length semantic.
 * Export all edge UI styles as tags
 * Create some diagrams
 * Type node factory call args

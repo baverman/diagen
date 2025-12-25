@@ -43,21 +43,23 @@ def setScale(name: str, scale_name: str, *pos: int) -> RuleValue:
     return inner
 
 
-def setGrid(name: str) -> RuleValue:
+def setGridCol(name: str) -> RuleValue:
     def inner(value: str, current: RawTag) -> RawTag:
-        h, sep, t = value.partition(':')
-        start = int(h)
-        if sep:
-            if t:
-                pt = int(t)
-                if pt > 0:
-                    end = start + pt
-                else:
-                    end = pt
-            else:
-                end = 0
+        if '/' in value:
+            h, sep, t = value.partition('/')
+            start = int(h)
+            end = start + int(t)
         else:
-            end = start + 1
+            h, sep, t = value.partition(':')
+
+            start = int(h)
+            if sep:
+                if t:
+                    end = int(t)
+                else:
+                    end = 0
+            else:
+                end = start + 1
 
         return {f'grid_{name}': (start, end)}
 
@@ -140,7 +142,7 @@ node.add_rules(
         rule('gapx', setScale('gap', 'scale', 0)),
         rule('gapy', setScale('gap', 'scale', 1)),
         rule('grid', lambda value, _: {'layout': GridLayout, 'grid_columns': int(value)}),
-        rule('col', setGrid('col')),
+        rule('col', setGridCol('col')),
         rule('align', setAlign('align', 0)),
         rule('valign', setAlign('align', 1)),
         rule('items-align', setAlign('items_align', 0)),
