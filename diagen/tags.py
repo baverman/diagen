@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Literal, Protocol, TypeVar
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
@@ -6,17 +6,21 @@ from .tagmap import (
     AnyEdgeTag,
     AnyNodeTag,
     EdgeProps,
+    EdgeTag,
     EdgeTagDefault,
     NodeProps,
+    NodeRuleValue,
+    NodeTag,
     NodeTagDefault,
-    RawTag,
-    RuleValue,
     TagMap,
     rule,
 )
 
 if TYPE_CHECKING:
     from .nodes import Node
+
+
+AlignLiteral = TypeVar('AlignLiteral', Literal['align'], Literal['items_align'])
 
 
 class Layout(Protocol):
@@ -29,22 +33,24 @@ def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> s
     return '\n'.join(label)
 
 
-def setScale(name: str, scale_name: str, *pos: int) -> RuleValue:
-    def inner(value: str, current: RawTag) -> RawTag:
-        v = float(value) * current[scale_name]  # type: ignore[operator]
+def setScale(
+    name: Literal['padding', 'size', 'gap'], scale_name: Literal['scale'], *pos: int
+) -> NodeRuleValue:
+    def inner(value: str, current: NodeTagDefault) -> NodeTag:
+        v = float(value) * current[scale_name]
         if pos:
-            result = list(current[name])  # type: ignore[call-overload]
+            result = list(current[name])
             for p in pos:
                 result[p] = v
-            return {name: tuple(result)}
+            return {name: tuple(result)}  # type: ignore[misc]
         else:
-            return {name: v}
+            return {name: v}  # type: ignore[misc]
 
     return inner
 
 
-def setGridCol(name: str) -> RuleValue:
-    def inner(value: str, current: RawTag) -> RawTag:
+def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
+    def inner(value: str, current: NodeTagDefault) -> NodeTag:
         if '/' in value:
             h, sep, t = value.partition('/')
             start = int(h)
@@ -61,13 +67,13 @@ def setGridCol(name: str) -> RuleValue:
             else:
                 end = start + 1
 
-        return {f'grid_{name}': (start, end)}
+        return {name: (start, end)}
 
     return inner
 
 
-def setAlign(name: str, pos: int) -> RuleValue:
-    def inner(value: str, current: RawTag) -> RawTag:
+def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
+    def inner(value: str, current: NodeTagDefault) -> NodeTag:
         if value == 'start':
             v = -1.0
         elif value == 'center':
@@ -78,27 +84,23 @@ def setAlign(name: str, pos: int) -> RuleValue:
             v = float(value)
 
         if pos == 0:
-            return {name: (v, current[name][1])}  # type: ignore[index]
+            return {name: (v, current[name][1])}
         else:
-            return {name: (current[name][0], v)}  # type: ignore[index]
+            return {name: (current[name][0], v)}
 
     return inner
 
 
-def setEdgeLabelOffset(value: str, current: RawTag) -> RawTag:
-    result = list(current['label_offset'])  # type: ignore[call-overload]
+def setEdgeLabelOffset(value: str, current: EdgeTagDefault) -> EdgeTag:
+    c = current['label_offset']
     h, _, t = value.partition('/')
 
-    if h:
-        result[0] = float(h)
-
-    if t:
-        result[1] = float(t) * current['scale']  # type: ignore[operator]
-
-    return {'label_offset': tuple(result)}
+    v0 = float(h) if h else c[0]
+    v1 = (float(t) * current['scale']) if t else c[1]
+    return {'label_offset': (v0, v1)}
 
 
-node = TagMap[NodeProps, AnyNodeTag]()
+node = TagMap[NodeProps, NodeTagDefault, AnyNodeTag]()
 
 node.update(
     {
@@ -142,7 +144,7 @@ node.add_rules(
         rule('gapx', setScale('gap', 'scale', 0)),
         rule('gapy', setScale('gap', 'scale', 1)),
         rule('grid', lambda value, _: {'layout': GridLayout, 'grid_columns': int(value)}),
-        rule('col', setGridCol('col')),
+        rule('col', setGridCol('grid_col')),
         rule('align', setAlign('align', 0)),
         rule('valign', setAlign('align', 1)),
         rule('items-align', setAlign('items_align', 0)),
@@ -151,7 +153,7 @@ node.add_rules(
 )
 
 
-edge = TagMap[EdgeProps, AnyEdgeTag]()
+edge = TagMap[EdgeProps, EdgeTagDefault, AnyEdgeTag]()
 
 edge.update(
     {

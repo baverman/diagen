@@ -28,10 +28,10 @@ def test_resolve_tags(mocker):
 
 
 def test_grid_col_setter():
-    assert tags.setGridCol('col')('1', {}) == {'grid_col': (1, 2)}
-    assert tags.setGridCol('col')('1:', {}) == {'grid_col': (1, 0)}
-    assert tags.setGridCol('col')('1:-2', {}) == {'grid_col': (1, -2)}
+    assert tags.setGridCol('grid_col')('1', {}) == {'grid_col': (1, 2)}
+    assert tags.setGridCol('grid_col')('1:', {}) == {'grid_col': (1, 0)}
+    assert tags.setGridCol('grid_col')('1:-2', {}) == {'grid_col': (1, -2)}
 
-    assert tags.setGridCol('col')('1/2', {}) == {'grid_col': (1, 3)}
-    assert tags.setGridCol('col')('1/0', {}) == {'grid_col': (1, 1)}
-    assert tags.setGridCol('col')('1/-1', {}) == {'grid_col': (1, 0)}
+    assert tags.setGridCol('grid_col')('1/2', {}) == {'grid_col': (1, 3)}
+    assert tags.setGridCol('grid_col')('1/0', {}) == {'grid_col': (1, 1)}
+    assert tags.setGridCol('grid_col')('1/-1', {}) == {'grid_col': (1, 0)}

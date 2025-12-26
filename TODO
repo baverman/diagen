@@ -1,6 +1,5 @@
 # TODO
 
-* Typed rule value setter (it seems it's possible to use default total typed dict)
 * Explicit port order control
 * Export all edge UI styles as tags
 * Create some diagrams

@@ -3,7 +3,7 @@ from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
 from .props import EdgeProps, EdgeTag, NodeProps, NodeTag
-from .tagmap import AnyEdgeTag, AnyNodeTag, TagMap
+from .tagmap import AnyEdgeTag, AnyNodeTag, EdgeTagDefault, NodeTagDefault, TagMap
 
 _children_stack: list[list['Node']] = []
 
@@ -156,7 +156,9 @@ class Edge:
 
 
 class NodeFactory:
-    def __init__(self, tagmap: TagMap[NodeProps, AnyNodeTag], props: tuple[NodeTag, ...] = ()):
+    def __init__(
+        self, tagmap: TagMap[NodeProps, NodeTagDefault, AnyNodeTag], props: tuple[NodeTag, ...] = ()
+    ):
         self.props = props
         self.tagmap = tagmap
         self._cm_stack: list[Node] = []
@@ -192,7 +194,9 @@ class NodeFactory:
 
 
 class EdgeFactory:
-    def __init__(self, tagmap: TagMap[EdgeProps, AnyEdgeTag], props: tuple[EdgeTag, ...] = ()):
+    def __init__(
+        self, tagmap: TagMap[EdgeProps, EdgeTagDefault, AnyEdgeTag], props: tuple[EdgeTag, ...] = ()
+    ):
         self.tagmap = tagmap
         self.props = props
 

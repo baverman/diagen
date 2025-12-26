@@ -4,14 +4,24 @@ from typing import Callable, Generic, Iterable, Mapping, TypeVar
 
 from .props import EdgeProps, EdgeTag, EdgeTagDefault, NodeProps, NodeTag, NodeTagDefault
 
-__all__ = ['AnyNodeTag', 'AnyEdgeTag', 'NodeProps', 'EdgeProps', 'EdgeTagDefault', 'NodeTagDefault']
+__all__ = [
+    'AnyNodeTag',
+    'AnyEdgeTag',
+    'NodeProps',
+    'EdgeProps',
+    'EdgeTagDefault',
+    'NodeTagDefault',
+    'NodeTag',
+    'EdgeTag',
+]
 
 RawTag = Mapping[str, object]
 AnyNodeTag = NodeTag | NodeTagDefault
 AnyEdgeTag = EdgeTag | EdgeTagDefault
 
-TagType = TypeVar('TagType', bound=AnyNodeTag | AnyEdgeTag)
-PropsType = TypeVar('PropsType', bound=NodeProps | EdgeProps)
+TagT = TypeVar('TagT', bound=AnyNodeTag | AnyEdgeTag)
+PropsT = TypeVar('PropsT', bound=NodeProps | EdgeProps)
+TagDefaultT = TypeVar('TagDefaultT', bound=NodeTagDefault | EdgeTagDefault)
 
 _smap_cache: dict[str, dict[str, object]] = {}
 
@@ -37,32 +47,34 @@ def get_style(style: str | dict[str, object] | None) -> dict[str, object]:
     return result
 
 
-RuleValue = Callable[[str, RawTag], RawTag]
+RuleValue = Callable[[str, TagDefaultT], TagT]
+NodeRuleValue = RuleValue[NodeTagDefault, NodeTag]
+EdgeRuleValue = RuleValue[EdgeTagDefault, EdgeTag]
 
 
 @dataclass
-class rule:
+class rule(Generic[TagDefaultT, TagT]):
     prefix: str
-    fn: RuleValue
+    fn: RuleValue[TagDefaultT, TagT]
     has_value: bool = True
 
 
-class TagMap(Generic[PropsType, TagType]):
-    _tagmap: dict[str, TagType]
-    _rules: list[rule]
+class TagMap(Generic[PropsT, TagDefaultT, TagT]):
+    _tagmap: dict[str, TagT]
+    _rules: list[rule[TagDefaultT, TagT]]
     _rules_re: re.Pattern[str]
-    _rules_map: dict[str, rule]
+    _rules_map: dict[str, rule[TagDefaultT, TagT]]
 
     def __init__(self) -> None:
         self._tagmap = {}
         self._rules = []
-        self._rule_cache: dict[str, tuple[RuleValue, str]] = {}
+        self._rule_cache: dict[str, tuple[RuleValue[TagDefaultT, TagT], str]] = {}
         self._process_rules()
 
-    def update(self, tags: Mapping[str, TagType]) -> None:
+    def update(self, tags: Mapping[str, TagT]) -> None:
         self._tagmap.update(tags)
 
-    def add_rules(self, rules: Iterable[rule]) -> None:
+    def add_rules(self, rules: Iterable[rule[TagDefaultT, TagT]]) -> None:
         self._rules.extend(rules)
         self._process_rules()
 
@@ -71,7 +83,7 @@ class TagMap(Generic[PropsType, TagType]):
         self._rules_re = re.compile(rf'({"|".join(vparts)})-(.+)')
         self._rules_map = {it.prefix: it for it in self._rules}
 
-    def _rule_value(self, tag: str) -> tuple[RuleValue, str] | None:
+    def _rule_value(self, tag: str) -> tuple[RuleValue[TagDefaultT, TagT], str] | None:
         try:
             return self._rule_cache[tag]
         except KeyError:
@@ -85,23 +97,23 @@ class TagMap(Generic[PropsType, TagType]):
         result = self._rule_cache[tag] = self._rules_map[prefix].fn, value
         return result
 
-    def resolve_tags(self, tags: list[str] | str, result: PropsType) -> None:
+    def resolve_tags(self, tags: list[str] | str, result: PropsT) -> None:
         if type(tags) is str:
             tags = [it.strip() for it in tags.split()]
 
         for it in tags:
             match = self._rule_value(it)
             if match:
-                self.merge(result, match[0](match[1], result))
+                self.merge(result, match[0](match[1], result))  # type: ignore[arg-type]
             else:
                 self.resolve_props(result, self._tagmap[it])
 
-    def merge(self, result: PropsType, data: RawTag) -> None:
+    def merge(self, result: PropsT, data: RawTag) -> None:
         style = {**get_style(result.get('style')), **get_style(data.get('style'))}  # type: ignore[arg-type]
         result.update(data, style=style)
         result.pop('tag', None)
 
-    def resolve_props(self, result: PropsType, *props: RawTag) -> None:
+    def resolve_props(self, result: PropsT, *props: RawTag) -> None:
         for p in props:
             ttag: str | list[str]
             if ttag := p.get('tag'):  # type: ignore[assignment]
