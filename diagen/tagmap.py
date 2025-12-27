@@ -6,9 +6,8 @@ from .props import EdgeProps, EdgeTag, NodeProps, NodeTag, Style
 
 __all__ = ['NodeProps', 'EdgeProps', 'NodeTag', 'EdgeTag', 'Style']
 
-RawTag = Mapping[str, object]
-TagT = TypeVar('TagT', bound=NodeTag | EdgeTag)
-PropsT = TypeVar('PropsT', bound=NodeProps | EdgeProps)
+TagT = TypeVar('TagT', NodeTag, EdgeTag)
+PropsT = TypeVar('PropsT', NodeProps, EdgeProps)
 
 _smap_cache: dict[str, Style] = {}
 
@@ -51,6 +50,7 @@ class TagMap(Generic[PropsT, TagT]):
     _rules: list[rule[PropsT, TagT]]
     _rules_re: re.Pattern[str]
     _rules_map: dict[str, rule[PropsT, TagT]]
+    _default_props: PropsT
 
     def __init__(self, default_props: PropsT) -> None:
         self._tagmap = {}
@@ -102,7 +102,7 @@ class TagMap(Generic[PropsT, TagT]):
         return result
 
     def merge(self, result: PropsT, data: TagT) -> None:
-        style = {**result.style, **get_style(data.get('style'))}  # type: ignore[arg-type]
+        style = {**result.style, **get_style(data.get('style'))}
         vars(result).update(data, style=style)
 
     def resolve_props(self, props: Iterable[TagT], result: PropsT | None = None) -> PropsT:
