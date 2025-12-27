@@ -1,16 +1,18 @@
 import pytest
 
-from diagen import grid, node, stack, tags, vstack
+from diagen import grid, node, stack, vstack
+
+from .conftest import set_scale
 
 
 @pytest.fixture(autouse=True)
 def setup(mocker):
-    mocker.patch.dict(tags.node._tagmap['root'])
-    tags.node._tagmap['root']['scale'] = 1
+    set_scale(mocker, 1)
 
 
 def test_hstack():
     s = stack['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
+    print(s.props)
     assert s.size[0] == 2 + 2 + 1 + 2
     assert s.size[1] == 5
 

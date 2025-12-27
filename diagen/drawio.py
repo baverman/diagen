@@ -6,18 +6,17 @@ from itertools import count
 from typing import Literal
 from urllib import parse
 
+from . import base_node
 from .nodes import Edge, Node, Port
-from .props import NodeProps, NodeTag
+from .props import NodeTag, Style
 from .utils import dtup2
 
 element = namedtuple('element', 'tag attrs children')
 
 
-def style_to_str(style: dict[str, object] | str | None) -> str:
+def style_to_str(style: Style) -> str:
     if not style:
         return ''
-    if isinstance(style, str):
-        return style
     return ';'.join(f'{k}={v}' for k, v in style.items())
 
 
@@ -33,8 +32,8 @@ def make_geom(node: Node) -> element:
 
 def node_element(node: Node) -> element:
     attrs = {
-        'id': node.props.id,
-        'parent': node.parent and node.parent.props.id or '__root__',
+        'id': node.id,
+        'parent': node.parent and node.parent.id or '__root__',
         'vertex': '1',
         'style': style_to_str(node.props.style),
     }
@@ -54,12 +53,12 @@ def port_element(
     node = port.node
     o = [1, 0][axis]
     attrs = {
-        'id': edge.props.id + '-' + node.props.id,
-        'parent': node.props.id,
+        'id': edge.id + '-' + node.id,
+        'parent': node.id,
         'vertex': '1',
         'style': 'container=0;fillColor=none;strokeColor=none',
     }
-    port_node = Node(NodeProps(NodeTag(size=(3, 3))))
+    port_node = base_node(NodeTag(size=(3, 3)))
     ac = node.origin[axis] + offset[0] * node.size[axis] - 1.5
     oc = node.origin[o] + (node.size[o] - 3) / 2.0 * (align + 1) + offset[1]
     port_node.position = dtup2(axis, ac, oc)
@@ -77,7 +76,7 @@ def arrange_port(edge: Edge, port: Port) -> element:
 CONSTRAINT = ['west', 'north', 'east', 'south']
 
 
-def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> dict[str, object]:
+def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> Style:
     return {f'{kind}PortConstraint': CONSTRAINT[port.side]}
 
 
@@ -85,10 +84,10 @@ def edge_element(edge: Edge) -> list[element]:
     geom = element('mxGeometry', {'as': 'geometry', 'relative': '1'}, [])
     attrs = {
         'edge': '1',
-        'id': edge.props.id,
-        'parent': edge.source.parent and edge.source.parent.props.id or '__root__',
-        'source': edge.source.props.id,
-        'target': edge.target.props.id,
+        'id': edge.id,
+        'parent': edge.source.parent and edge.source.parent.id or '__root__',
+        'source': edge.source.node_ref.id,
+        'target': edge.target.node_ref.id,
     }
 
     if label := edge.get_label():
@@ -130,7 +129,8 @@ def edge_element(edge: Edge) -> list[element]:
 
 def make_model(node: Node) -> element:
     node.arrange()
-    root_node = Node(NodeProps(id='__root__', virtual=False), node)
+    root_node = base_node(node)
+    root_node.id = '__root__'
     root_node.position = (0, 0)
 
     root = element(
@@ -148,15 +148,15 @@ def make_model(node: Node) -> element:
     edges = set()
     for it in root_node.walk():
         edges.update(it.edges)
-        if not it.props.get('id'):
-            it.props['id'] = f'diagen-{next(idconter)}'
+        if not it.id:
+            it.id = f'diagen-{next(idconter)}'
         children.append(node_element(it))
 
     children.reverse()
 
     for edge in edges:
-        if not edge.props.get('id'):
-            edge.props['id'] = f'diagen-{next(idconter)}'
+        if not edge.id:
+            edge.id = f'diagen-{next(idconter)}'
         children.extend(edge_element(edge))
 
     root.children.extend(children)

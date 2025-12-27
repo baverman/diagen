@@ -1,4 +1,4 @@
-from .. import edge_root, root, tags
+from .. import base_edge, base_node, tags
 from ..props import EdgeProps, NodeProps
 
 
@@ -89,14 +89,14 @@ tags.edge.update(
     }
 )
 
-Person = root['c4-person']
-ExtPerson = root['c4-ext-person']
-System = root['c4-system']
-ExtSystem = root['c4-ext-system']
-Container = root['c4-container']
-Component = root['c4-component']
-Boundary = root['c4-boundary']
-Storage = root['c4-storage']
-Pod = root['c4-pod']
-Bus = root['c4-bus']
-edge = edge_root['c4-edge']
+Person = base_node['c4-person']
+ExtPerson = base_node['c4-ext-person']
+System = base_node['c4-system']
+ExtSystem = base_node['c4-ext-system']
+Container = base_node['c4-container']
+Component = base_node['c4-component']
+Boundary = base_node['c4-boundary']
+Storage = base_node['c4-storage']
+Pod = base_node['c4-pod']
+Bus = base_node['c4-bus']
+edge = base_edge['c4-edge']

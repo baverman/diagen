@@ -1,10 +1,21 @@
-from typing import TYPE_CHECKING, Callable, TypedDict
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Callable, Protocol, TypedDict
 
 if TYPE_CHECKING:
-    from .tags import Layout
+    from .nodes import Node
 
 
-class NodeProps(dict[str, object]):
+Style = dict[str, int | float | str]
+
+
+class Layout(Protocol):
+    def size(self, node: 'Node', axis: int) -> float: ...
+
+    def arrange(self, node: 'Node') -> None: ...
+
+
+@dataclass
+class NodeProps:
     direction: int
     layout: 'Layout'
     scale: float
@@ -22,30 +33,7 @@ class NodeProps(dict[str, object]):
     link: str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
-    id: str
-    style: dict[str, object]
-    __getattr__ = dict.__getitem__
-
-
-class NodeTagDefault(TypedDict):
-    direction: int
-    layout: 'Layout'
-    scale: float
-    size: tuple[float, float]
-    padding: tuple[float, float, float, float]
-    gap: tuple[float, float]
-    virtual: bool
-    align: tuple[float | None, float | None]
-    items_align: tuple[float, float]
-
-    grid_columns: int | None
-    grid_col: tuple[int, int] | None
-
-    # drawio
-    link: str | None
-    label_formatter: Callable[['NodeProps', list[str]], str]
-
-    style: dict[str, object]
+    style: Style
 
 
 class NodeTag(TypedDict, total=False):
@@ -66,27 +54,17 @@ class NodeTag(TypedDict, total=False):
     link: str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
-    id: str
     tag: str
-    style: dict[str, object] | str | None
+    style: Style | str
 
 
-class EdgeProps(dict[str, object]):
+@dataclass
+class EdgeProps:
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
 
-    id: str
-    style: dict[str, object]
-    __getattr__ = dict.__getitem__
-
-
-class EdgeTagDefault(TypedDict):
-    scale: float
-    label_formatter: Callable[['EdgeProps', list[str]], str]
-    label_offset: tuple[float, float]
-
-    style: dict[str, object]
+    style: Style
 
 
 class EdgeTag(TypedDict, total=False):
@@ -94,6 +72,5 @@ class EdgeTag(TypedDict, total=False):
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
 
-    id: str
     tag: str
-    style: dict[str, object] | str | None
+    style: Style | str

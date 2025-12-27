@@ -1,12 +1,12 @@
 from . import tags
 from .nodes import EdgeFactory, NodeFactory
 
-root = NodeFactory(tags.node)['root']
-stack = root['dh virtual']
-vstack = root['dv virtual']
-grid = root['grid virtual']
-node = root['w-24 h-12']
-group = root['p-4 gap-24']
+base_node = NodeFactory(tags.node)
+stack = base_node['dh virtual']
+vstack = base_node['dv virtual']
+grid = base_node['grid virtual']
+node = base_node['w-24 h-12']
+group = base_node['p-4 gap-24']
 
-edge_root = EdgeFactory(tags.edge)['root']
-edge = edge_root
+base_edge = EdgeFactory(tags.edge)
+edge = base_edge

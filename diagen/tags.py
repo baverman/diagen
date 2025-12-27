@@ -1,32 +1,10 @@
-from typing import TYPE_CHECKING, Literal, Protocol, TypeVar
+from typing import Literal, TypeVar
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
-from .tagmap import (
-    AnyEdgeTag,
-    AnyNodeTag,
-    EdgeProps,
-    EdgeTag,
-    EdgeTagDefault,
-    NodeProps,
-    NodeRuleValue,
-    NodeTag,
-    NodeTagDefault,
-    TagMap,
-    rule,
-)
-
-if TYPE_CHECKING:
-    from .nodes import Node
-
+from .tagmap import EdgeProps, EdgeTag, NodeProps, NodeRuleValue, NodeTag, TagMap, rule
 
 AlignLiteral = TypeVar('AlignLiteral', Literal['align'], Literal['items_align'])
-
-
-class Layout(Protocol):
-    def size(self, node: 'Node', axis: int) -> float: ...
-
-    def arrange(self, node: 'Node') -> None: ...
 
 
 def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> str:
@@ -36,10 +14,11 @@ def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> s
 def setScale(
     name: Literal['padding', 'size', 'gap'], scale_name: Literal['scale'], *pos: int
 ) -> NodeRuleValue:
-    def inner(value: str, current: NodeTagDefault) -> NodeTag:
-        v = float(value) * current[scale_name]
+    def inner(value: str, current: NodeProps) -> NodeTag:
+        dyn: NodeTag = vars(current)  # type: ignore[assignment]
+        v = float(value) * dyn[scale_name]
         if pos:
-            result = list(current[name])
+            result = list(dyn[name])
             for p in pos:
                 result[p] = v
             return {name: tuple(result)}  # type: ignore[misc]
@@ -50,7 +29,7 @@ def setScale(
 
 
 def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
-    def inner(value: str, current: NodeTagDefault) -> NodeTag:
+    def inner(value: str, current: NodeProps) -> NodeTag:
         if '/' in value:
             h, sep, t = value.partition('/')
             start = int(h)
@@ -73,7 +52,8 @@ def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
 
 
 def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
-    def inner(value: str, current: NodeTagDefault) -> NodeTag:
+    def inner(value: str, current: NodeProps) -> NodeTag:
+        dyn: NodeTag = vars(current)  # type: ignore[assignment]
         if value == 'start':
             v = -1.0
         elif value == 'center':
@@ -84,42 +64,43 @@ def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
             v = float(value)
 
         if pos == 0:
-            return {name: (v, current[name][1])}
+            return {name: (v, dyn[name][1])}
         else:
-            return {name: (current[name][0], v)}
+            return {name: (dyn[name][0], v)}
 
     return inner
 
 
-def setEdgeLabelOffset(value: str, current: EdgeTagDefault) -> EdgeTag:
-    c = current['label_offset']
+def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeTag:
+    c = current.label_offset
     h, _, t = value.partition('/')
 
     v0 = float(h) if h else c[0]
-    v1 = (float(t) * current['scale']) if t else c[1]
+    v1 = (float(t) * current.scale) if t else c[1]
     return {'label_offset': (v0, v1)}
 
 
-node = TagMap[NodeProps, NodeTagDefault, AnyNodeTag]()
+node = TagMap[NodeProps, NodeTag](
+    NodeProps(
+        direction=0,
+        layout=BoxLayout,
+        size=(-1, -1),
+        padding=(0, 0, 0, 0),
+        gap=(0, 0),
+        scale=4.0,
+        virtual=False,
+        link=None,
+        style={},
+        label_formatter=default_label_formatter,
+        items_align=(0, 0),
+        align=(None, None),
+        grid_columns=None,
+        grid_col=None,
+    )
+)
 
 node.update(
     {
-        'root': NodeTagDefault(
-            direction=0,
-            layout=BoxLayout,
-            size=(-1, -1),
-            padding=(0, 0, 0, 0),
-            gap=(0, 0),
-            scale=4.0,
-            virtual=False,
-            link=None,
-            style={},
-            label_formatter=default_label_formatter,
-            items_align=(0, 0),
-            align=(None, None),
-            grid_columns=None,
-            grid_col=None,
-        ),
         'dh': {'direction': 0},
         'dv': {'direction': 1},
         'virtual': {'virtual': True},
@@ -153,17 +134,13 @@ node.add_rules(
 )
 
 
-edge = TagMap[EdgeProps, EdgeTagDefault, AnyEdgeTag]()
-
-edge.update(
-    {
-        'root': EdgeTagDefault(
-            scale=4.0,
-            style={},
-            label_formatter=default_label_formatter,
-            label_offset=(0, 0),
-        )
-    }
+edge = TagMap[EdgeProps, EdgeTag](
+    EdgeProps(
+        scale=4.0,
+        style={},
+        label_formatter=default_label_formatter,
+        label_offset=(0, 0),
+    )
 )
 
 edge.add_rules([rule('label', setEdgeLabelOffset)])

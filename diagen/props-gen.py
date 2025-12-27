@@ -24,54 +24,48 @@ EDGE_PROPS = """\
 """.rstrip()
 
 BODY = f"""\
-from typing import TYPE_CHECKING, Callable, TypedDict
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Callable, Protocol, TypedDict
 
 if TYPE_CHECKING:
-    from .tags import Layout
+    from .nodes import Node
 
 
-class NodeProps(dict[str, object]):
+Style = dict[str, int | float | str]
+
+
+class Layout(Protocol):
+    def size(self, node: 'Node', axis: int) -> float: ...
+
+    def arrange(self, node: 'Node') -> None: ...
+
+
+@dataclass
+class NodeProps:
 {NODE_PROPS}
 
-    id: str
-    style: dict[str, object]
-    __getattr__ = dict.__getitem__
-
-
-class NodeTagDefault(TypedDict):
-{NODE_PROPS}
-
-    style: dict[str, object]
+    style: Style
 
 
 class NodeTag(TypedDict, total=False):
 {NODE_PROPS}
 
-    id: str
     tag: str
-    style: dict[str, object] | str | None
+    style: Style | str
 
 
-class EdgeProps(dict[str, object]):
+@dataclass
+class EdgeProps:
 {EDGE_PROPS}
 
-    id: str
-    style: dict[str, object]
-    __getattr__ = dict.__getitem__
-
-
-class EdgeTagDefault(TypedDict):
-{EDGE_PROPS}
-
-    style: dict[str, object]
+    style: Style
 
 
 class EdgeTag(TypedDict, total=False):
 {EDGE_PROPS}
 
-    id: str
     tag: str
-    style: dict[str, object] | str | None
+    style: Style | str
 """
 
 if __name__ == '__main__':
