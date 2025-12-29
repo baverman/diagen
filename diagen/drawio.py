@@ -66,11 +66,11 @@ def port_element(
 
 
 def arrange_port(edge: Edge, port: Port) -> element:
-    edges = port.node.edge_order[port.side]
-    idx = edges[edge]
+    edges = port.node.edge_positions[port.side]
+    pos = edges[edge]
     axis = 1 if port.side in (0, 2) else 0
     align = -1 if port.side in (0, 1) else 1
-    return port_element(edge, port, axis, align, ((idx + 1) / (len(edges) + 1), 0))
+    return port_element(edge, port, axis, align, (pos, 0))
 
 
 CONSTRAINT = ['west', 'north', 'east', 'south']

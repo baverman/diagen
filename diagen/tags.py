@@ -2,7 +2,17 @@ from typing import Literal, TypeVar
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
-from .tagmap import EdgeProps, EdgeTag, NodeProps, NodeRuleValue, NodeTag, TagMap, rule
+from .tagmap import (
+    EdgeProps,
+    EdgeRuleValue,
+    EdgeTag,
+    NodeProps,
+    NodeRuleValue,
+    NodeTag,
+    TagMap,
+    rule,
+)
+from .utils import mux2
 
 AlignLiteral = TypeVar('AlignLiteral', Literal['align'], Literal['items_align'])
 
@@ -63,10 +73,7 @@ def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
         else:
             v = float(value)
 
-        if pos == 0:
-            return {name: (v, dyn[name][1])}
-        else:
-            return {name: (dyn[name][0], v)}
+        return {name: mux2(pos, v, dyn[name])}
 
     return inner
 
@@ -78,6 +85,21 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeTag:
     v0 = float(h) if h else c[0]
     v1 = (float(t) * current.scale) if t else c[1]
     return {'label_offset': (v0, v1)}
+
+
+def setPortPosition(pos: int) -> EdgeRuleValue:
+    def inner(value: str, current: EdgeProps) -> EdgeTag:
+        if '.' in value:
+            v = float(value)
+        elif '/' in value:
+            h, _, t = value.partition('/')
+            v = float(h) / (float(t) + 1)
+        else:
+            v = -int(value)
+
+        return {'port_position': mux2(pos, v, current.port_position)}
+
+    return inner
 
 
 node = TagMap[NodeProps, NodeTag](
@@ -140,7 +162,14 @@ edge = TagMap[EdgeProps, EdgeTag](
         style={},
         label_formatter=default_label_formatter,
         label_offset=(0, 0),
+        port_position=(None, None),
     )
 )
 
-edge.add_rules([rule('label', setEdgeLabelOffset)])
+edge.add_rules(
+    [
+        rule('label', setEdgeLabelOffset),
+        rule('start-port', setPortPosition(0)),
+        rule('end-port', setPortPosition(1)),
+    ]
+)

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
@@ -102,14 +102,33 @@ class Node:
         return self
 
     @cached_property
-    def edge_order(self) -> list[dict['Edge', int]]:
-        result: list[dict['Edge', int]] = [{}, {}, {}, {}]
+    def edge_positions(self) -> list[dict['Edge', float]]:
+        result: list[dict['Edge', float]] = [{}, {}, {}, {}]
+
+        count = [0, 0, 0, 0]
+        reserved: list[set[int]] = [set(), set(), set(), set()]
+        for it in self.edges:
+            for port in it.node_ports(self):
+                s = port.side
+                count[s] += 1
+                if port.index is not None:
+                    reserved[s].add(port.index)
+
         counter = [0, 0, 0, 0]
         for it in self.edges:
             for port in it.node_ports(self):
-                c = counter[port.side]
-                counter[port.side] += 1
-                result[port.side][it] = c
+                s = port.side
+                if port.position is not None:
+                    result[s][it] = port.position
+                else:
+                    if port.index is None:
+                        c = counter[s]
+                        while c in reserved[s]:
+                            c += 1
+                        counter[s] = c + 1
+                    else:
+                        c = port.index
+                    result[s][it] = (c + 1) / (count[s] + 1)
         return result
 
 
@@ -117,6 +136,8 @@ class Node:
 class Port:
     node: Node
     side: int
+    position: float | None = None
+    index: int | None = None
 
     @property
     def node_ref(self) -> Node:
@@ -126,8 +147,26 @@ class Port:
     def parent(self) -> Node | None:
         return self.node.parent
 
+    def __getitem__(self, pos: int | float) -> 'Port':
+        if isinstance(pos, int):
+            return replace(self, index=pos)
+        else:
+            return replace(self, position=pos)
+
 
 AnyEdgePort = Node | Port
+
+
+def apply_position(node: AnyEdgePort, end: int, props: EdgeProps) -> AnyEdgePort:
+    if isinstance(node, Port):
+        pos = props.port_position[end]
+        if pos is not None:
+            if pos >= 0:
+                return replace(node, position=pos)
+            else:
+                return replace(node, index=-int(pos))
+
+    return node
 
 
 class Edge:
@@ -136,8 +175,8 @@ class Edge:
     ) -> None:
         self.id = ''
         self.props = props
-        self.source = source
-        self.target = target
+        self.source = apply_position(source, 0, props)
+        self.target = apply_position(target, 1, props)
         self.label = list(label)
 
         source.node_ref.edges.append(self)

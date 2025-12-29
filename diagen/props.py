@@ -63,6 +63,7 @@ class EdgeProps:
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
+    port_position: tuple[float | None, float | None]
 
     style: Style
 
@@ -71,6 +72,7 @@ class EdgeTag(TypedDict, total=False):
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
+    port_position: tuple[float | None, float | None]
 
     tag: str
     style: Style | str

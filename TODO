@@ -1,6 +1,5 @@
 # TODO
 
-* Explicit port order control
 * Export all edge UI styles as tags
 * Create some diagrams
 * Type node factory call args
