@@ -1,5 +1,21 @@
 # TODO
 
 * Export all edge UI styles as tags
+  - sharp/curved/rounded (rounded=1, curved=1)
+  - strokeColor (none, default)
+  - dashed / dashPattern
+  - strokeWidth
+  - comic / jiggle
+  - sketch
+  - shadow
+  - shape (look for all supported shapes)
+  - startArrow/endArrow, what is startFill/endFill?
+  - startSize/endSize
+  - sourcePerimeterSpacing/targetPerimiterSpacing
+  - jumpStyle/jumpSize
+
+
 * Create some diagrams
 * Type node factory call args
+Creates registration keys
+[Browser]

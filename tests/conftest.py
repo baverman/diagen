@@ -2,16 +2,16 @@ from dataclasses import replace
 
 import pytest
 
-from diagen import tags
+from diagen import styles
 
 
 @pytest.fixture(autouse=True)
-def reset_tagmaps(mocker):
-    mocker.patch.dict(tags.node._tagmap)
-    mocker.patch.dict(tags.edge._tagmap)
+def reset_stylemaps(mocker):
+    mocker.patch.dict(styles.node._styles)
+    mocker.patch.dict(styles.edge._styles)
 
 
 def set_scale(mocker, scale: float) -> None:
     mocker.patch(
-        'diagen.tags.node.default_props', lambda: replace(tags.node._default_props, scale=scale)
+        'diagen.styles.node.default_props', lambda: replace(styles.node._default_props, scale=scale)
     )

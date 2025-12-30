@@ -2,14 +2,14 @@ from typing import Literal, TypeVar
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
-from .tagmap import (
+from .stylemap import (
+    EdgeKeys,
     EdgeProps,
     EdgeRuleValue,
-    EdgeTag,
+    NodeKeys,
     NodeProps,
     NodeRuleValue,
-    NodeTag,
-    TagMap,
+    StyleMap,
     rule,
 )
 from .utils import mux2
@@ -24,8 +24,8 @@ def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> s
 def setScale(
     name: Literal['padding', 'size', 'gap'], scale_name: Literal['scale'], *pos: int
 ) -> NodeRuleValue:
-    def inner(value: str, current: NodeProps) -> NodeTag:
-        dyn: NodeTag = vars(current)  # type: ignore[assignment]
+    def inner(value: str, current: NodeProps) -> NodeKeys:
+        dyn: NodeKeys = vars(current)  # type: ignore[assignment]
         v = float(value) * dyn[scale_name]
         if pos:
             result = list(dyn[name])
@@ -39,7 +39,7 @@ def setScale(
 
 
 def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
-    def inner(value: str, current: NodeProps) -> NodeTag:
+    def inner(value: str, current: NodeProps) -> NodeKeys:
         if '/' in value:
             h, sep, t = value.partition('/')
             start = int(h)
@@ -62,8 +62,8 @@ def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
 
 
 def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
-    def inner(value: str, current: NodeProps) -> NodeTag:
-        dyn: NodeTag = vars(current)  # type: ignore[assignment]
+    def inner(value: str, current: NodeProps) -> NodeKeys:
+        dyn: NodeKeys = vars(current)  # type: ignore[assignment]
         if value == 'start':
             v = -1.0
         elif value == 'center':
@@ -78,7 +78,7 @@ def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
     return inner
 
 
-def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeTag:
+def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
     c = current.label_offset
     h, _, t = value.partition('/')
 
@@ -88,7 +88,7 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeTag:
 
 
 def setPortPosition(pos: int) -> EdgeRuleValue:
-    def inner(value: str, current: EdgeProps) -> EdgeTag:
+    def inner(value: str, current: EdgeProps) -> EdgeKeys:
         if '.' in value:
             v = float(value)
         elif '/' in value:
@@ -102,7 +102,7 @@ def setPortPosition(pos: int) -> EdgeRuleValue:
     return inner
 
 
-node = TagMap[NodeProps, NodeTag](
+node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
         layout=BoxLayout,
@@ -112,7 +112,7 @@ node = TagMap[NodeProps, NodeTag](
         scale=4.0,
         virtual=False,
         link=None,
-        style={},
+        drawio_style={},
         label_formatter=default_label_formatter,
         items_align=(0, 0),
         align=(None, None),
@@ -156,10 +156,10 @@ node.add_rules(
 )
 
 
-edge = TagMap[EdgeProps, EdgeTag](
+edge = StyleMap[EdgeProps, EdgeKeys](
     EdgeProps(
         scale=4.0,
-        style={},
+        drawio_style={},
         label_formatter=default_label_formatter,
         label_offset=(0, 0),
         port_position=(None, None),

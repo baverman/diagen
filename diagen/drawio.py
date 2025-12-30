@@ -8,13 +8,13 @@ from urllib import parse
 
 from . import base_node
 from .nodes import Edge, Node, Port
-from .props import NodeTag, Style
+from .props import BackendStyle, NodeKeys
 from .utils import dtup2
 
 element = namedtuple('element', 'tag attrs children')
 
 
-def style_to_str(style: Style) -> str:
+def style_to_str(style: BackendStyle) -> str:
     if not style:
         return ''
     return ';'.join(f'{k}={v}' for k, v in style.items())
@@ -35,7 +35,7 @@ def node_element(node: Node) -> element:
         'id': node.id,
         'parent': node.parent and node.parent.id or '__root__',
         'vertex': '1',
-        'style': style_to_str(node.props.style),
+        'style': style_to_str(node.props.drawio_style),
     }
 
     if label := node.get_label():
@@ -58,7 +58,7 @@ def port_element(
         'vertex': '1',
         'style': 'container=0;fillColor=none;strokeColor=none',
     }
-    port_node = base_node(NodeTag(size=(3, 3)))
+    port_node = base_node(NodeKeys(size=(3, 3)))
     ac = node.origin[axis] + offset[0] * node.size[axis] - 1.5
     oc = node.origin[o] + (node.size[o] - 3) / 2.0 * (align + 1) + offset[1]
     port_node.position = dtup2(axis, ac, oc)
@@ -76,7 +76,7 @@ def arrange_port(edge: Edge, port: Port) -> element:
 CONSTRAINT = ['west', 'north', 'east', 'south']
 
 
-def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> Style:
+def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> BackendStyle:
     return {f'{kind}PortConstraint': CONSTRAINT[port.side]}
 
 
@@ -93,7 +93,7 @@ def edge_element(edge: Edge) -> list[element]:
     if label := edge.get_label():
         attrs['value'] = label
 
-    style = edge.props.style.copy()
+    style = edge.props.drawio_style.copy()
 
     result: list[element | None] = []
 

@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from .nodes import Node
 
 
-Style = dict[str, int | float | str]
+BackendStyle = dict[str, int | float | str]
 
 
 class Layout(Protocol):
@@ -45,28 +45,28 @@ class Layout(Protocol):
 class NodeProps:
 {NODE_PROPS}
 
-    style: Style
+    drawio_style: BackendStyle
 
 
-class NodeTag(TypedDict, total=False):
+class NodeKeys(TypedDict, total=False):
 {NODE_PROPS}
 
-    tag: str
-    style: Style | str
+    classes: str
+    drawio_style: BackendStyle | str
 
 
 @dataclass
 class EdgeProps:
 {EDGE_PROPS}
 
-    style: Style
+    drawio_style: BackendStyle
 
 
-class EdgeTag(TypedDict, total=False):
+class EdgeKeys(TypedDict, total=False):
 {EDGE_PROPS}
 
-    tag: str
-    style: Style | str
+    classes: str
+    drawio_style: BackendStyle | str
 """
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Any, Iterable, Self, Union
 
-from .tagmap import EdgeProps, EdgeTag, NodeProps, NodeTag, TagMap
+from .stylemap import EdgeKeys, EdgeProps, NodeKeys, NodeProps, StyleMap
 
 _children_stack: list[list['Node']] = []
 
@@ -192,16 +192,16 @@ class Edge:
 
 
 class NodeFactory:
-    def __init__(self, tagmap: TagMap[NodeProps, NodeTag], props: tuple[NodeTag, ...] = ()):
+    def __init__(self, styles: StyleMap[NodeProps, NodeKeys], props: tuple[NodeKeys, ...] = ()):
         self.props = props
-        self.tagmap = tagmap
+        self.styles = styles
         self._cm_stack: list[Node] = []
 
-    def __getitem__(self, tags: str) -> 'NodeFactory':
-        return NodeFactory(self.tagmap, self.props + ({'tag': tags},))
+    def __getitem__(self, classes: str) -> 'NodeFactory':
+        return NodeFactory(self.styles, self.props + ({'classes': classes},))
 
     def __call__(self, *args: Any) -> Node:
-        props: tuple[NodeTag, ...] = self.props
+        props: tuple[NodeKeys, ...] = self.props
         children: tuple[Node | str, ...]
         if not args:
             children = ()
@@ -211,7 +211,7 @@ class NodeFactory:
             props = (*self.props, args[0])
             children = args[1:]
 
-        fprops = self.tagmap.resolve_props(props)
+        fprops = self.styles.resolve_props(props)
         return Node(fprops, *children)
 
     def __enter__(self) -> Node:
@@ -225,12 +225,12 @@ class NodeFactory:
 
 
 class EdgeFactory:
-    def __init__(self, tagmap: TagMap[EdgeProps, EdgeTag], props: tuple[EdgeTag, ...] = ()):
-        self.tagmap = tagmap
+    def __init__(self, styles: StyleMap[EdgeProps, EdgeKeys], props: tuple[EdgeKeys, ...] = ()):
+        self.styles = styles
         self.props = props
 
-    def __getitem__(self, tags: str) -> 'EdgeFactory':
-        return EdgeFactory(self.tagmap, self.props + ({'tag': tags},))
+    def __getitem__(self, classes: str) -> 'EdgeFactory':
+        return EdgeFactory(self.styles, self.props + ({'classes': classes},))
 
     def __call__(self, *args: Any) -> Edge:
         props = self.props
@@ -243,5 +243,5 @@ class EdgeFactory:
         else:
             rest = args
 
-        fprops = self.tagmap.resolve_props(props)
+        fprops = self.styles.resolve_props(props)
         return Edge(fprops, *rest)

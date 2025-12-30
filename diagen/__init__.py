@@ -1,12 +1,12 @@
-from . import tags
+from . import styles
 from .nodes import EdgeFactory, NodeFactory
 
-base_node = NodeFactory(tags.node)
+base_node = NodeFactory(styles.node)
 stack = base_node['dh virtual']
 vstack = base_node['dv virtual']
 grid = base_node['grid virtual']
 node = base_node['w-24 h-12']
 group = base_node['p-4 gap-24']
 
-base_edge = EdgeFactory(tags.edge)
+base_edge = EdgeFactory(styles.edge)
 edge = base_edge

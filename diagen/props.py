@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from .nodes import Node
 
 
-Style = dict[str, int | float | str]
+BackendStyle = dict[str, int | float | str]
 
 
 class Layout(Protocol):
@@ -33,10 +33,10 @@ class NodeProps:
     link: str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
-    style: Style
+    drawio_style: BackendStyle
 
 
-class NodeTag(TypedDict, total=False):
+class NodeKeys(TypedDict, total=False):
     direction: int
     layout: 'Layout'
     scale: float
@@ -54,8 +54,8 @@ class NodeTag(TypedDict, total=False):
     link: str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
-    tag: str
-    style: Style | str
+    classes: str
+    drawio_style: BackendStyle | str
 
 
 @dataclass
@@ -65,14 +65,14 @@ class EdgeProps:
     label_offset: tuple[float, float]
     port_position: tuple[float | None, float | None]
 
-    style: Style
+    drawio_style: BackendStyle
 
 
-class EdgeTag(TypedDict, total=False):
+class EdgeKeys(TypedDict, total=False):
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
     port_position: tuple[float | None, float | None]
 
-    tag: str
-    style: Style | str
+    classes: str
+    drawio_style: BackendStyle | str
