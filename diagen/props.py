@@ -63,7 +63,6 @@ class EdgeProps:
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
-    port_position: tuple[float | None, float | None]
 
     drawio_style: BackendStyle
 
@@ -72,7 +71,6 @@ class EdgeKeys(TypedDict, total=False):
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
-    port_position: tuple[float | None, float | None]
 
     classes: str
     drawio_style: BackendStyle | str

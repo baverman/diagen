@@ -157,26 +157,14 @@ class Port:
 AnyEdgePort = Node | Port
 
 
-def apply_position(node: AnyEdgePort, end: int, props: EdgeProps) -> AnyEdgePort:
-    if isinstance(node, Port):
-        pos = props.port_position[end]
-        if pos is not None:
-            if pos >= 0:
-                return replace(node, position=pos)
-            else:
-                return replace(node, index=-int(pos))
-
-    return node
-
-
 class Edge:
     def __init__(
         self, props: EdgeProps, source: AnyEdgePort, target: AnyEdgePort, *label: str
     ) -> None:
         self.id = ''
         self.props = props
-        self.source = apply_position(source, 0, props)
-        self.target = apply_position(target, 1, props)
+        self.source = source
+        self.target = target
         self.label = list(label)
 
         source.node_ref.edges.append(self)

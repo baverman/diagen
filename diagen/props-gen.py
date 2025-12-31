@@ -21,7 +21,6 @@ EDGE_PROPS = """\
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
-    port_position: tuple[float | None, float | None]
 """.rstrip()
 
 BODY = f"""\

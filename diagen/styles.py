@@ -5,7 +5,6 @@ from .layouts.grid import GridLayout
 from .stylemap import (
     EdgeKeys,
     EdgeProps,
-    EdgeRuleValue,
     NodeKeys,
     NodeProps,
     NodeRuleValue,
@@ -87,21 +86,6 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
     return {'label_offset': (v0, v1)}
 
 
-def setPortPosition(pos: int) -> EdgeRuleValue:
-    def inner(value: str, current: EdgeProps) -> EdgeKeys:
-        if '.' in value:
-            v = float(value)
-        elif '/' in value:
-            h, _, t = value.partition('/')
-            v = float(h) / (float(t) + 1)
-        else:
-            v = -int(value)
-
-        return {'port_position': mux2(pos, v, current.port_position)}
-
-    return inner
-
-
 node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
@@ -162,14 +146,11 @@ edge = StyleMap[EdgeProps, EdgeKeys](
         drawio_style={},
         label_formatter=default_label_formatter,
         label_offset=(0, 0),
-        port_position=(None, None),
     )
 )
 
 edge.add_rules(
     [
         rule('label', setEdgeLabelOffset),
-        rule('start-port', setPortPosition(0)),
-        rule('end-port', setPortPosition(1)),
     ]
 )
