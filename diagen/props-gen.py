@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from .nodes import Node
 
 
-BackendStyle = dict[str, int | float | str]
+BackendStyle = dict[str, int | float | str | list[str]]
 
 
 class Layout(Protocol):

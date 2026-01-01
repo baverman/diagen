@@ -149,6 +149,18 @@ edge = StyleMap[EdgeProps, EdgeKeys](
     )
 )
 
+edge.update(
+    {
+        # Edge styles
+        'edge-style-none': {'drawio_style': {'@pop': ['edgeStyle']}},
+        'elbow': {'drawio_style': 'edgeStyle=elbowEdgeStyle'},
+        'elbow-v': {'drawio_style': 'edgeStyle=elbowEdgeStyle;elbow=vertical'},
+        'elbow-h': {'drawio_style': 'edgeStyle=elbowEdgeStyle;elbow=horizontal'},
+        'entity-rel': {'drawio_style': 'edgeStyle=entityRelationEdgeStyle'},
+        'ortho': {'drawio_style': 'edgeStyle=orthogonalEdgeStyle'},
+    }
+)
+
 edge.add_rules(
     [
         rule('label', setEdgeLabelOffset),

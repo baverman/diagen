@@ -2,6 +2,7 @@
 
 * Export all edge UI styles as tags
   - sharp/curved/rounded (rounded=1, curved=1)
+  - arcSize
   - strokeColor (none, default)
   - dashed / dashPattern
   - strokeWidth

@@ -5,6 +5,7 @@ from diagen import styles
 from .conftest import set_scale
 
 resolve_classes = styles.node.resolve_classes
+edge_resolve_classes = styles.edge.resolve_classes
 
 
 @pytest.fixture(autouse=True)
@@ -32,3 +33,10 @@ def test_grid_col_setter():
     assert styles.setGridCol('grid_col')('1/2', {}) == {'grid_col': (1, 3)}
     assert styles.setGridCol('grid_col')('1/0', {}) == {'grid_col': (1, 1)}
     assert styles.setGridCol('grid_col')('1/-1', {}) == {'grid_col': (1, 0)}
+
+
+def test_edge_style():
+    result = edge_resolve_classes('ortho edge-style-none')
+    assert '@pop' not in result.drawio_style
+    assert 'edgeStyle' not in result.drawio_style
+    assert '@pop' in styles.edge._styles['edge-style-none']['drawio_style']

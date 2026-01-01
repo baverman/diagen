@@ -45,6 +45,17 @@ class rule(Generic[PropsT, KeysT]):
     has_value: bool = True
 
 
+def merge_drawio_style(old: BackendStyle, new: BackendStyle) -> BackendStyle:
+    result = old.copy()
+    if '@pop' in new:
+        new = new.copy()
+        todelete: list[str] = new.pop('@pop')  # type: ignore[assignment]
+        for it in todelete:
+            result.pop(it, None)
+    result.update(new)
+    return result
+
+
 class StyleMap(Generic[PropsT, KeysT]):
     _styles: dict[str, KeysT]
     _rules: list[rule[PropsT, KeysT]]
@@ -102,7 +113,7 @@ class StyleMap(Generic[PropsT, KeysT]):
         return result
 
     def merge(self, result: PropsT, data: KeysT) -> None:
-        drawio_style = {**result.drawio_style, **get_style(data.get('drawio_style'))}
+        drawio_style = merge_drawio_style(result.drawio_style, get_style(data.get('drawio_style')))
         vars(result).update(data, drawio_style=drawio_style)
 
     def resolve_props(self, props: Iterable[KeysT], result: PropsT | None = None) -> PropsT:
