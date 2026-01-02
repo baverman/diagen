@@ -1,8 +1,6 @@
 # TODO
 
 * Export all edge UI styles as tags
-  - comic / jiggle
-  - sketch
   - strokeColor (none, default)
   - dashed / dashPattern
   - strokeWidth

@@ -150,11 +150,13 @@ edge = StyleMap[EdgeProps, EdgeKeys](
     )
 )
 
-EDGE_CURVE_TYPES = {'rounded', 'curved'}
+EDGE_CURVE_TYPES = ['rounded', 'curved']
+EDGE_MODES = ['comic', 'sketch']
 
 
-def conflictStyle(name: str, value: int | str, cnames: set[str]) -> BackendStyle:
-    return {name: value, '@pop': list(cnames - {name})}
+def cstyle(conflict_keys: list[str], **style: int | str) -> BackendStyle:
+    style['@pop'] = conflict_keys  # type: ignore[assignment]
+    return style  # type: ignore[return-value]
 
 
 edge.update(
@@ -167,9 +169,13 @@ edge.update(
         'entity-rel': {'drawio_style': 'edgeStyle=entityRelationEdgeStyle'},
         'ortho': {'drawio_style': 'edgeStyle=orthogonalEdgeStyle'},
         # Edge curve types
-        'rounded': {'drawio_style': conflictStyle('rounded', 1, EDGE_CURVE_TYPES)},
-        'curved': {'drawio_style': conflictStyle('curved', 1, EDGE_CURVE_TYPES)},
-        'sharp': {'drawio_style': conflictStyle('rounded', 0, EDGE_CURVE_TYPES)},
+        'rounded': {'drawio_style': cstyle(EDGE_CURVE_TYPES, rounded=1)},
+        'curved': {'drawio_style': cstyle(EDGE_CURVE_TYPES, curved=1)},
+        'sharp': {'drawio_style': cstyle(EDGE_CURVE_TYPES, rounded=0)},
+        # Edge modes
+        'comic': {'drawio_style': cstyle(EDGE_MODES, comic=1)},
+        'sketch': {'drawio_style': cstyle(EDGE_MODES, sketch=1)},
+        'plain': {'drawio_style': cstyle(EDGE_MODES)},
     }
 )
 
@@ -179,10 +185,19 @@ edge.add_rules(
         rule(
             'rounded',
             lambda value, current: {
-                'drawio_style': {
-                    **conflictStyle('rounded', 1, EDGE_CURVE_TYPES),
-                    'arcSize': current.scale * float(value),
-                }
+                'drawio_style': cstyle(
+                    EDGE_CURVE_TYPES, rounded=1, arcSize=int(current.scale * float(value))
+                )
+            },
+        ),
+        rule(
+            'comic',
+            lambda value, current: {'drawio_style': cstyle(EDGE_MODES, comic=1, jiggle=int(value))},
+        ),
+        rule(
+            'sketch',
+            lambda value, current: {
+                'drawio_style': cstyle(EDGE_MODES, sketch=1, jiggle=int(value))
             },
         ),
     ]
