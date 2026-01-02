@@ -1,13 +1,11 @@
 # TODO
 
 * Export all edge UI styles as tags
-  - sharp/curved/rounded (rounded=1, curved=1)
-  - arcSize
+  - comic / jiggle
+  - sketch
   - strokeColor (none, default)
   - dashed / dashPattern
   - strokeWidth
-  - comic / jiggle
-  - sketch
   - shadow
   - shape (look for all supported shapes)
   - startArrow/endArrow, what is startFill/endFill?

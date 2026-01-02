@@ -3,6 +3,7 @@ from typing import Literal, TypeVar
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
 from .stylemap import (
+    BackendStyle,
     EdgeKeys,
     EdgeProps,
     NodeKeys,
@@ -149,6 +150,13 @@ edge = StyleMap[EdgeProps, EdgeKeys](
     )
 )
 
+EDGE_CURVE_TYPES = {'rounded', 'curved'}
+
+
+def conflictStyle(name: str, value: int | str, cnames: set[str]) -> BackendStyle:
+    return {name: value, '@pop': list(cnames - {name})}
+
+
 edge.update(
     {
         # Edge styles
@@ -158,11 +166,24 @@ edge.update(
         'elbow-h': {'drawio_style': 'edgeStyle=elbowEdgeStyle;elbow=horizontal'},
         'entity-rel': {'drawio_style': 'edgeStyle=entityRelationEdgeStyle'},
         'ortho': {'drawio_style': 'edgeStyle=orthogonalEdgeStyle'},
+        # Edge curve types
+        'rounded': {'drawio_style': conflictStyle('rounded', 1, EDGE_CURVE_TYPES)},
+        'curved': {'drawio_style': conflictStyle('curved', 1, EDGE_CURVE_TYPES)},
+        'sharp': {'drawio_style': conflictStyle('rounded', 0, EDGE_CURVE_TYPES)},
     }
 )
 
 edge.add_rules(
     [
         rule('label', setEdgeLabelOffset),
+        rule(
+            'rounded',
+            lambda value, current: {
+                'drawio_style': {
+                    **conflictStyle('rounded', 1, EDGE_CURVE_TYPES),
+                    'arcSize': current.scale * float(value),
+                }
+            },
+        ),
     ]
 )

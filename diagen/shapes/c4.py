@@ -79,9 +79,9 @@ styles.node.update(
 styles.edge.update(
     {
         'c4-base': {
-            'classes': 'ortho',
+            'classes': 'ortho rounded-5',
             'label_formatter': c4_label_fmt,
-            'drawio_style': 'rounded=1;jettySize=auto;html=1;endArrow=classicThin;fontSize=12',
+            'drawio_style': 'jettySize=auto;html=1;endArrow=classicThin;fontSize=12',
         },
         'c4-edge': {
             'classes': 'c4-base',
