@@ -79,13 +79,13 @@ styles.node.update(
 styles.edge.update(
     {
         'c4-base': {
-            'classes': 'ortho rounded-5',
+            'classes': 'ortho rounded-5 color-#828282',
             'label_formatter': c4_label_fmt,
-            'drawio_style': 'jettySize=auto;html=1;endArrow=classicThin;fontSize=12',
+            'drawio_style': 'jettySize=auto;html=1;endArrow=classicThin;fontSize=12;fontColor=#404040',
         },
         'c4-edge': {
             'classes': 'c4-base',
-            'drawio_style': 'fontColor=#404040;strokeColor=#828282;perimeterSpacing=4',
+            'drawio_style': 'perimeterSpacing=4',
         },
     }
 )

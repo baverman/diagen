@@ -200,5 +200,7 @@ edge.add_rules(
                 'drawio_style': cstyle(EDGE_MODES, sketch=1, jiggle=int(value))
             },
         ),
+        rule('w', lambda value, current: {'drawio_style': {'strokeWidth': float(value)}}),
+        rule('color', lambda value, current: {'drawio_style': {'strokeColor': value}}),
     ]
 )
