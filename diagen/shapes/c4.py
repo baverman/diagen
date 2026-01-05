@@ -66,8 +66,8 @@ styles.node.update(
             'drawio_style': 'shape=cylinder3;direction=south;size=10;boundedLbl=1',
         },
         'c4-boundary': {
-            'classes': 'c4-base c4-base-arcs p-12 gap-40',
-            'drawio_style': 'rounded=1;dashed=1;fillColor=none;strokeColor=#666666;fontColor=#333333;labelBackgroundColor=none;align=left;verticalAlign=bottom;labelBorderColor=none;spacingLeft=4;spacingBottom=0;dashPattern=6 4;labelPadding=0;arcSize=10',
+            'classes': 'c4-base c4-base-arcs p-12 gap-40 dashed-6-4',
+            'drawio_style': 'rounded=1;fillColor=none;strokeColor=#666666;fontColor=#333333;labelBackgroundColor=none;align=left;verticalAlign=bottom;labelBorderColor=none;spacingLeft=4;spacingBottom=0;labelPadding=0;arcSize=10',
         },
         'c4-component': {
             'classes': 'c4-base-node',

@@ -104,11 +104,14 @@ class StyleMap(Generic[PropsT, KeysT]):
             classes = [it.strip() for it in classes.split()]
 
         for it in classes:
-            match = self._rule_value(it)
-            if match:
-                self.merge(result, match[0](match[1], result))
-            else:
+            if it in self._styles:
                 self.resolve_props((self._styles[it],), result)
+            else:
+                match = self._rule_value(it)
+                if match:
+                    self.merge(result, match[0](match[1], result))
+                else:
+                    raise ValueError(f'Unknown class or rule: {it}')
 
         return result
 

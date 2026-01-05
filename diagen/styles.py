@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar
+from typing import Literal, TypeVar, overload
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
@@ -87,6 +87,21 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
     return {'label_offset': (v0, v1)}
 
 
+@overload
+def setDashed(value: str, current: EdgeProps) -> EdgeKeys: ...
+
+
+@overload
+def setDashed(value: str, current: NodeProps) -> NodeKeys: ...
+
+
+def setDashed(value: str, current: NodeProps | EdgeProps) -> NodeKeys | EdgeKeys:
+    h, sep, t = value.partition('-')
+    if not sep:
+        t = h
+    return {'drawio_style': {'dashed': 1, 'dashPattern': f'{h} {t}'}}
+
+
 node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
@@ -113,6 +128,9 @@ node.update(
         'virtual': {'virtual': True},
         'non-virtual': {'virtual': False},
         'grid': {'layout': GridLayout},
+        # Dash style
+        'dashed': {'drawio_style': {'dashed': 1}},
+        'solid': {'drawio_style': {'dashed': 0}},
     }
 )
 
@@ -137,6 +155,7 @@ node.add_rules(
         rule('valign', setAlign('align', 1)),
         rule('items-align', setAlign('items_align', 0)),
         rule('items-valign', setAlign('items_align', 1)),
+        rule('dashed', setDashed),
     ]
 )
 
@@ -176,6 +195,9 @@ edge.update(
         'comic': {'drawio_style': cstyle(EDGE_MODES, comic=1)},
         'sketch': {'drawio_style': cstyle(EDGE_MODES, sketch=1)},
         'plain': {'drawio_style': cstyle(EDGE_MODES)},
+        # Dash style
+        'dashed': {'drawio_style': {'dashed': 1}},
+        'solid': {'drawio_style': {'dashed': 0}},
     }
 )
 
@@ -202,5 +224,6 @@ edge.add_rules(
         ),
         rule('w', lambda value, current: {'drawio_style': {'strokeWidth': float(value)}}),
         rule('color', lambda value, current: {'drawio_style': {'strokeColor': value}}),
+        rule('dashed', setDashed),
     ]
 )

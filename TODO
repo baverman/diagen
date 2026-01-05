@@ -1,7 +1,6 @@
 # TODO
 
 * Export all edge UI styles as tags
-  - dashed / dashPattern
   - shadow
   - shape (look for all supported shapes)
   - startArrow/endArrow, what is startFill/endFill?
@@ -9,9 +8,6 @@
   - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
-* Check resolve order between rules and classes, classes should have priority
 * Max port index should set number of ports, instead of edge count
 * Create some diagrams
 * Type node factory call args
-Creates registration keys
-[Browser]
