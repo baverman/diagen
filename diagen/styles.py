@@ -102,6 +102,20 @@ def setDashed(value: str, current: NodeProps | EdgeProps) -> NodeKeys | EdgeKeys
     return {'drawio_style': {'dashed': 1, 'dashPattern': f'{h} {t}'}}
 
 
+def setShadow(value: str, current: EdgeProps) -> EdgeKeys:
+    h, _, t = value.partition('/')
+
+    style: BackendStyle = {
+        'shadow': 1,
+        'shadowBlur': h,
+    }
+
+    if t:
+        style['shadowOpacity'] = t
+
+    return {'drawio_style': style}
+
+
 node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
@@ -198,6 +212,9 @@ edge.update(
         # Dash style
         'dashed': {'drawio_style': {'dashed': 1}},
         'solid': {'drawio_style': {'dashed': 0}},
+        # Shadow
+        'shadow': {'drawio_style': {'shadow': 1}},
+        'shadow-none': {'drawio_style': {'shadow': 0}},
     }
 )
 
@@ -225,5 +242,6 @@ edge.add_rules(
         rule('w', lambda value, current: {'drawio_style': {'strokeWidth': float(value)}}),
         rule('color', lambda value, current: {'drawio_style': {'strokeColor': value}}),
         rule('dashed', setDashed),
+        rule('shadow', setShadow),
     ]
 )
