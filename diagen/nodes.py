@@ -106,6 +106,7 @@ class Node:
         result: list[dict['Edge', float]] = [{}, {}, {}, {}]
 
         count = [0, 0, 0, 0]
+        maxidx1 = [0, 0, 0, 0]
         reserved: list[set[int]] = [set(), set(), set(), set()]
         for it in self.edges:
             for port in it.node_ports(self):
@@ -113,6 +114,7 @@ class Node:
                 count[s] += 1
                 if port.index is not None:
                     reserved[s].add(port.index)
+                    maxidx1[s] = max(maxidx1[s], port.index+1)
 
         counter = [0, 0, 0, 0]
         for it in self.edges:
@@ -128,7 +130,7 @@ class Node:
                         counter[s] = c + 1
                     else:
                         c = port.index
-                    result[s][it] = (c + 1) / (count[s] + 1)
+                    result[s][it] = (c + 1) / (max(count[s], maxidx1[s]) + 1)
         return result
 
 

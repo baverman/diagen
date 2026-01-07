@@ -7,6 +7,5 @@
   - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
-* Max port index should set number of ports, instead of edge count
 * Create some diagrams
 * Type node factory call args
