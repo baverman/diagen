@@ -1,7 +1,6 @@
 # TODO
 
 * Export all edge UI styles as tags
-  - shape (look for all supported shapes)
   - startArrow/endArrow, what is startFill/endFill?
   - startSize/endSize
   - sourcePerimeterSpacing/targetPerimiterSpacing

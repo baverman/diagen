@@ -215,6 +215,13 @@ edge.update(
         # Shadow
         'shadow': {'drawio_style': {'shadow': 1}},
         'shadow-none': {'drawio_style': {'shadow': 0}},
+        # Shapes
+        'shape-link': {'drawio_style': {'shape': 'link'}},
+        'shape-flex-arrow': {'drawio_style': {'shape': 'flexArrow'}},
+        'shape-arrow': {'drawio_style': {'shape': 'arrow'}},
+        'shape-filled': {'drawio_style': {'shape': 'filledEdge'}},
+        'shape-pipe': {'drawio_style': {'shape': 'pipe'}},
+        'shape-wire': {'drawio_style': {'shape': 'wire', 'fillColor': 'default', 'dashed': 1}},
     }
 )
 
