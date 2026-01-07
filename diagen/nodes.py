@@ -1,8 +1,16 @@
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import Any, Iterable, Self, Union
+from typing import Any, Collection, Iterable, Self, Union
 
-from .stylemap import EdgeKeys, EdgeProps, NodeKeys, NodeProps, StyleMap
+from .stylemap import (
+    ClassList,
+    EdgeKeys,
+    EdgeProps,
+    EdgeStyleMap,
+    NodeKeys,
+    NodeProps,
+    NodeStyleMap,
+)
 
 _children_stack: list[list['Node']] = []
 
@@ -12,13 +20,16 @@ class Node:
     parent: Union['Node', None]
     edges: list['Edge']
 
-    def __init__(self, props: NodeProps, *children: Union['Node', str]) -> None:
+    def __init__(
+        self, props: NodeProps, children: Collection[Union['Node', str]], styles: NodeStyleMap
+    ) -> None:
         self.id = ''
         self.parent = None
         self.props = props
         self.label = list(it for it in children if isinstance(it, str))
         self.children = list(it for it in children if isinstance(it, Node))
         self.position: tuple[float, float] = (0, 0)
+        self.styles = styles
         self.edges = []
 
         self._added = False
@@ -114,7 +125,7 @@ class Node:
                 count[s] += 1
                 if port.index is not None:
                     reserved[s].add(port.index)
-                    maxidx1[s] = max(maxidx1[s], port.index+1)
+                    maxidx1[s] = max(maxidx1[s], port.index + 1)
 
         counter = [0, 0, 0, 0]
         for it in self.edges:
@@ -140,6 +151,7 @@ class Port:
     side: int
     position: float | None = None
     index: int | None = None
+    classes: list[str] | None = None
 
     @property
     def node_ref(self) -> Node:
@@ -149,11 +161,17 @@ class Port:
     def parent(self) -> Node | None:
         return self.node.parent
 
-    def __getitem__(self, pos: int | float) -> 'Port':
+    def __getitem__(self, pos: int | float | ClassList) -> 'Port':
         if isinstance(pos, int):
             return replace(self, index=pos)
-        else:
+        elif isinstance(pos, float):
             return replace(self, position=pos)
+
+        clist = (self.classes or []).copy()
+        if isinstance(pos, str):
+            pos = [it.strip() for it in pos.split()]
+        clist.extend(pos)
+        return replace(self, classes=clist)
 
 
 AnyEdgePort = Node | Port
@@ -161,13 +179,19 @@ AnyEdgePort = Node | Port
 
 class Edge:
     def __init__(
-        self, props: EdgeProps, source: AnyEdgePort, target: AnyEdgePort, *label: str
+        self,
+        props: EdgeProps,
+        source: AnyEdgePort,
+        target: AnyEdgePort,
+        label: Collection[str],
+        styles: EdgeStyleMap,
     ) -> None:
         self.id = ''
         self.props = props
         self.source = source
         self.target = target
         self.label = list(label)
+        self.styles = styles
 
         source.node_ref.edges.append(self)
         target.node_ref.edges.append(self)
@@ -182,7 +206,7 @@ class Edge:
 
 
 class NodeFactory:
-    def __init__(self, styles: StyleMap[NodeProps, NodeKeys], props: tuple[NodeKeys, ...] = ()):
+    def __init__(self, styles: NodeStyleMap, props: tuple[NodeKeys, ...] = ()):
         self.props = props
         self.styles = styles
         self._cm_stack: list[Node] = []
@@ -202,7 +226,7 @@ class NodeFactory:
             children = args[1:]
 
         fprops = self.styles.resolve_props(props)
-        return Node(fprops, *children)
+        return Node(fprops, children, self.styles)
 
     def __enter__(self) -> Node:
         node = self()
@@ -215,7 +239,7 @@ class NodeFactory:
 
 
 class EdgeFactory:
-    def __init__(self, styles: StyleMap[EdgeProps, EdgeKeys], props: tuple[EdgeKeys, ...] = ()):
+    def __init__(self, styles: EdgeStyleMap, props: tuple[EdgeKeys, ...] = ()):
         self.styles = styles
         self.props = props
 
@@ -234,4 +258,4 @@ class EdgeFactory:
             rest = args
 
         fprops = self.styles.resolve_props(props)
-        return Edge(fprops, *rest)
+        return Edge(fprops, rest[0], rest[1], rest[2:], self.styles)

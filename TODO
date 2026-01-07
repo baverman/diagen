@@ -2,9 +2,13 @@
 
 * Export all edge UI styles as tags
   - startArrow/endArrow, what is startFill/endFill?
-  - startSize/endSize
+    - fill class (with color)
+    - size class
+    - all with start/end prefix
   - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
+* Merge props in factories as they go. To avoid O(N^2) calculations.
 * Create some diagrams
 * Type node factory call args
+* Lazy node/edges styles to get opportunity to adjust drawio lists, for example extend arrow styles?

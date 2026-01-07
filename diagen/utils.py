@@ -1,3 +1,4 @@
+import re
 from typing import TypeVar
 
 OptFloat = TypeVar('OptFloat', float, float | None)
@@ -15,3 +16,17 @@ def mux2(pos: int, value: float, current: tuple[OptFloat, OptFloat]) -> tuple[Op
         return value, current[1]
     else:
         return current[0], value
+
+
+capital_re = re.compile('[A-Z]+')
+
+
+def _replace(match: re.Match[str]) -> str:
+    m = match.group(0).lower()
+    if len(m) > 1:
+        return '-' + m + '-'
+    return '-' + m
+
+
+def kebab_case(string: str) -> str:
+    return capital_re.sub(_replace, string).lstrip('-')

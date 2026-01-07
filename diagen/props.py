@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 
 BackendStyle = dict[str, int | float | str | list[str]]
+ClassList = str | list[str]
 
 
 class Layout(Protocol):
@@ -54,7 +55,7 @@ class NodeKeys(TypedDict, total=False):
     link: str | None
     label_formatter: Callable[['NodeProps', list[str]], str]
 
-    classes: str
+    classes: ClassList
     drawio_style: BackendStyle | str
 
 
@@ -72,5 +73,5 @@ class EdgeKeys(TypedDict, total=False):
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
 
-    classes: str
+    classes: ClassList
     drawio_style: BackendStyle | str

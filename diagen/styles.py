@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, overload
+from typing import Iterable, Literal, TypeVar, overload
 
 from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
@@ -12,7 +12,7 @@ from .stylemap import (
     StyleMap,
     rule,
 )
-from .utils import mux2
+from .utils import kebab_case, mux2
 
 AlignLiteral = TypeVar('AlignLiteral', Literal['align'], Literal['items_align'])
 
@@ -185,6 +185,33 @@ edge = StyleMap[EdgeProps, EdgeKeys](
 
 EDGE_CURVE_TYPES = ['rounded', 'curved']
 EDGE_MODES = ['comic', 'sketch']
+ARROW_TYPES = [
+    'none',
+    'classic',
+    'classicThin',
+    'block',
+    'blockThin',
+    'open',
+    'openThin',
+    'oval',
+    'diamond',
+    'diamondThin',
+    'async',
+    'openAsync',
+    'halfCircle',
+    'dash',
+    'cross',
+    'circlePlus',
+    'circle',
+    'baseDash',
+    'ERone',
+    'ERmandOne',
+    'ERmany',
+    'ERoneToMany',
+    'ERzeroToOne',
+    'ERzeroToMany',
+    'doubleBlock',
+]
 
 
 def cstyle(conflict_keys: list[str], **style: int | str) -> BackendStyle:
@@ -252,3 +279,17 @@ edge.add_rules(
         rule('shadow', setShadow),
     ]
 )
+
+
+def addArrowStyles(arrows: Iterable[str]) -> None:
+    classes: dict[str, EdgeKeys] = {}
+
+    for name in arrows:
+        kc_name = kebab_case(name)
+        classes['start-' + kc_name] = {'drawio_style': {'startArrow': name}}
+        classes['end-' + kc_name] = {'drawio_style': {'endArrow': name}}
+
+    edge.update(classes)
+
+
+addArrowStyles(ARROW_TYPES)

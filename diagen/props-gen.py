@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 
 BackendStyle = dict[str, int | float | str | list[str]]
+ClassList = str | list[str]
 
 
 class Layout(Protocol):
@@ -50,7 +51,7 @@ class NodeProps:
 class NodeKeys(TypedDict, total=False):
 {NODE_PROPS}
 
-    classes: str
+    classes: ClassList
     drawio_style: BackendStyle | str
 
 
@@ -64,7 +65,7 @@ class EdgeProps:
 class EdgeKeys(TypedDict, total=False):
 {EDGE_PROPS}
 
-    classes: str
+    classes: ClassList
     drawio_style: BackendStyle | str
 """
 

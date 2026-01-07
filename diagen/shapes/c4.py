@@ -79,9 +79,9 @@ styles.node.update(
 styles.edge.update(
     {
         'c4-base': {
-            'classes': 'ortho rounded-5 color-#828282',
+            'classes': 'ortho rounded-5 color-#828282 end-classic-thin',
             'label_formatter': c4_label_fmt,
-            'drawio_style': 'jettySize=auto;html=1;endArrow=classicThin;fontSize=12;fontColor=#404040',
+            'drawio_style': 'jettySize=auto;html=1;fontSize=12;fontColor=#404040',
         },
         'c4-edge': {
             'classes': 'c4-base',

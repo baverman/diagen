@@ -2,9 +2,9 @@ import re
 from dataclasses import dataclass, replace
 from typing import Callable, Generic, Iterable, Mapping, TypeVar
 
-from .props import BackendStyle, EdgeKeys, EdgeProps, NodeKeys, NodeProps
+from .props import BackendStyle, ClassList, EdgeKeys, EdgeProps, NodeKeys, NodeProps
 
-__all__ = ['NodeProps', 'EdgeProps', 'NodeKeys', 'EdgeKeys', 'BackendStyle']
+__all__ = ['NodeProps', 'EdgeProps', 'NodeKeys', 'EdgeKeys', 'BackendStyle', 'ClassList']
 
 KeysT = TypeVar('KeysT', NodeKeys, EdgeKeys)
 PropsT = TypeVar('PropsT', NodeProps, EdgeProps)
@@ -96,7 +96,7 @@ class StyleMap(Generic[PropsT, KeysT]):
         result = self._rule_cache[cls] = self._rules_map[prefix].fn, value
         return result
 
-    def resolve_classes(self, classes: list[str] | str, result: PropsT | None = None) -> PropsT:
+    def resolve_classes(self, classes: ClassList, result: PropsT | None = None) -> PropsT:
         if result is None:
             result = self.default_props()
 
@@ -124,7 +124,7 @@ class StyleMap(Generic[PropsT, KeysT]):
             result = self.default_props()
 
         for p in props:
-            classes: str | list[str]
+            classes: ClassList
             if classes := p.get('classes'):  # type: ignore[assignment]
                 self.resolve_classes(classes, result)
             self.merge(result, p)
@@ -133,3 +133,7 @@ class StyleMap(Generic[PropsT, KeysT]):
 
     def default_props(self) -> PropsT:
         return replace(self._default_props)
+
+
+NodeStyleMap = StyleMap[NodeProps, NodeKeys]
+EdgeStyleMap = StyleMap[EdgeProps, EdgeKeys]

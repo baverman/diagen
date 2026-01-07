@@ -8,7 +8,7 @@ from urllib import parse
 
 from . import base_node
 from .nodes import Edge, Node, Port
-from .props import BackendStyle, NodeKeys
+from .stylemap import BackendStyle, EdgeStyleMap, NodeKeys
 from .utils import dtup2
 
 element = namedtuple('element', 'tag attrs children')
@@ -76,8 +76,15 @@ def arrange_port(edge: Edge, port: Port) -> element:
 CONSTRAINT = ['west', 'north', 'east', 'south']
 
 
-def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> BackendStyle:
-    return {f'{kind}PortConstraint': CONSTRAINT[port.side]}
+def port_style(
+    port: Port, kind: Literal['source'] | Literal['target'], stylemap: EdgeStyleMap
+) -> BackendStyle:
+    result: BackendStyle = {f'{kind}PortConstraint': CONSTRAINT[port.side]}
+    if port.classes:
+        prefix = {'source': 'start-', 'target': 'end-'}[kind]
+        props = stylemap.resolve_classes([prefix + it for it in port.classes])
+        result.update(props.drawio_style)
+    return result
 
 
 def edge_element(edge: Edge) -> list[element]:
@@ -98,12 +105,12 @@ def edge_element(edge: Edge) -> list[element]:
     result: list[element | None] = []
 
     if isinstance(edge.source, Port):
-        style.update(port_style(edge.source, 'source'))
+        style.update(port_style(edge.source, 'source', edge.styles))
         result.append(el := arrange_port(edge, edge.source))
         attrs['source'] = el.attrs['id']
 
     if isinstance(edge.target, Port):
-        style.update(port_style(edge.target, 'target'))
+        style.update(port_style(edge.target, 'target', edge.styles))
         result.append(el := arrange_port(edge, edge.target))
         attrs['target'] = el.attrs['id']
 
