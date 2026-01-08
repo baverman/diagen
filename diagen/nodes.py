@@ -194,7 +194,15 @@ class Edge:
         self.styles = styles
 
         source.node_ref.edges.append(self)
+        self._apply_port_styles(source, 'start-')
+
         target.node_ref.edges.append(self)
+        self._apply_port_styles(target, 'end-')
+
+    def _apply_port_styles(self, port: AnyEdgePort, prefix: str) -> None:
+        if isinstance(port, Port):
+            if port.classes:
+                self.styles.resolve_classes([prefix + it for it in port.classes], self.props)
 
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
