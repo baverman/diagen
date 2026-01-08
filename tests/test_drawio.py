@@ -25,9 +25,9 @@ def test_full(render):
             cdn = c4.System('File storage', 'cdn.company.com')
 
     c4.edge['label--0.2/12'](
-        ext_host.r, portal.l[2]['circle fill-#a44'], 'Checks registration', 'cli, HTTP'
+        ext_host.r, portal.l[2]['circle fill-#a44 size-3'], 'Checks registration', 'cli, HTTP'
     )
-    c4.edge['label-0.2'](ext_user.t, portal.l['async'], 'Creates registration keys', 'Browser')
+    c4.edge['label-0.2'](ext_user.t, portal.l['async-10'], 'Creates registration keys', 'Browser')
     c4.edge['label--0.3'](ext_host.r, packages, 'Downloads patches', 'cli, HTTP')
     c4.edge['label-0.2'](ext_host.b, cdn.l, 'Downloads package updates', 'yum, apt, HTTP')
     c4.edge['label-0.2/6'](

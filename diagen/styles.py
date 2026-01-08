@@ -117,11 +117,25 @@ def setShadow(value: str, current: EdgeProps) -> EdgeKeys:
     return {'drawio_style': style}
 
 
-def setEdgeFill(prefix: str) -> EdgeRuleValue:
-    def inner(value: str, current: EdgeProps) -> EdgeKeys:
+def setEdgeEndFill(prefix: str) -> EdgeRuleValue:
+    def setter(value: str, current: EdgeProps) -> EdgeKeys:
         return {'drawio_style': {prefix + 'Fill': 1, prefix + 'FillColor': value}}
 
-    return inner
+    return setter
+
+
+def setEdgeEndSize(prefix: str) -> EdgeRuleValue:
+    def setter(value: str, current: EdgeProps) -> EdgeKeys:
+        return {'drawio_style': {prefix + 'Size': value}}
+
+    return setter
+
+
+def setEdgeArrowShape(prefix: str, name: str) -> EdgeRuleValue:
+    def setter(value: str, current: EdgeProps) -> EdgeKeys:
+        return {'drawio_style': {prefix + 'Size': value, prefix + 'Arrow': name}}
+
+    return setter
 
 
 node = StyleMap[NodeProps, NodeKeys](
@@ -297,10 +311,12 @@ def addArrowStyles(arrows: Iterable[str]) -> None:
         for name in arrows:
             kc_name = kebab_case(name)
             classes[class_prefix + kc_name] = {'drawio_style': {style_prefix + 'Arrow': name}}
+            rules.append(rule(class_prefix + kc_name, setEdgeArrowShape(style_prefix, name)))
 
         classes[class_prefix + 'fill'] = {'drawio_style': {style_prefix + 'Fill': 1}}
         classes[class_prefix + 'fill-none'] = {'drawio_style': {style_prefix + 'Fill': 0}}
-        rules.append(rule(class_prefix + 'fill', setEdgeFill(style_prefix)))
+        rules.append(rule(class_prefix + 'fill', setEdgeEndFill(style_prefix)))
+        rules.append(rule(class_prefix + 'size', setEdgeEndSize(style_prefix)))
 
     edge.update(classes)
     edge.add_rules(rules)
