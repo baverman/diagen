@@ -2,9 +2,7 @@
 
 * Export all edge UI styles as tags
   - startArrow/endArrow, what is startFill/endFill?
-    - fill class (with color)
     - size class
-    - all with start/end prefix
   - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
