@@ -23,7 +23,7 @@ styles.node.update(
             'drawio_style': 'html=1;fontSize=12',
         },
         'c4-base-person': {
-            'classes': 'c4-base w-28 h-25',
+            'classes': 'c4-base size-28/25',
             'drawio_style': 'shape=mxgraph.c4.person2',
         },
         'c4-person': {
@@ -38,7 +38,7 @@ styles.node.update(
             'drawio_style': 'arcSize=15;absoluteArcSize=1',
         },
         'c4-base-node': {
-            'classes': 'c4-base c4-base-arcs w-40 h-20',
+            'classes': 'c4-base c4-base-arcs size-40/20',
             'drawio_style': 'rounded=1;labelBackgroundColor=none;fontColor=#ffffff',
         },
         'c4-system': {

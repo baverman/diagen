@@ -5,7 +5,9 @@
   - jumpStyle/jumpSize
 
 * Merge props in factories as they go. To avoid O(N^2) calculations.
-* `size-N/M` node class to set width and height
 * Create some diagrams
 * Type node factory call args
+
+# Investigate
+
 * Lazy node/edges styles to get opportunity to adjust drawio lists, for example extend arrow styles?

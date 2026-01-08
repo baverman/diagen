@@ -79,6 +79,13 @@ def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
     return inner
 
 
+def setNodeSize(value: str, current: NodeProps) -> NodeKeys:
+    h, _, t = value.partition('/')
+    if not t:
+        t = h
+    return {'size': (float(h) * current.scale, float(t) * current.scale)}
+
+
 def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
     c = current.label_offset
     h, _, t = value.partition('/')
@@ -184,7 +191,7 @@ node.add_rules(
         rule('pr', setScale('padding', 'scale', 2)),
         rule('pt', setScale('padding', 'scale', 1)),
         rule('pb', setScale('padding', 'scale', 3)),
-        rule('size', setScale('size', 'scale', 0, 1)),
+        rule('size', setNodeSize),
         rule('w', setScale('size', 'scale', 0)),
         rule('h', setScale('size', 'scale', 1)),
         rule('gap', setScale('gap', 'scale', 0, 1)),
