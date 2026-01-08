@@ -83,7 +83,12 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
     c = current.label_offset
     h, _, t = value.partition('/')
 
-    v0 = float(h) if h else c[0]
+    if h:
+        v0 = float(h)
+        if abs(v0) > 1:
+            v0 = v0 / 50 - 1
+    else:
+        v0 = c[0]
     v1 = (float(t) * current.scale) if t else c[1]
     return {'label_offset': (v0, v1)}
 

@@ -5,7 +5,7 @@
   - jumpStyle/jumpSize
 
 * Merge props in factories as they go. To avoid O(N^2) calculations.
-* Use percent values for label offsets. It's quite awkward to use float numbers.
+* `size-N/M` node class to set width and height
 * Create some diagrams
 * Type node factory call args
 * Lazy node/edges styles to get opportunity to adjust drawio lists, for example extend arrow styles?

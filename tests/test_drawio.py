@@ -24,16 +24,16 @@ def test_full(render):
             packages = c4.System('Packages', 'packages.company.com')
             cdn = c4.System('File storage', 'cdn.company.com')
 
-    c4.edge['label--0.2/12'](
+    c4.edge['label-40/12'](
         ext_host.r, portal.l[2]['circle fill-#a44 size-3'], 'Checks registration', 'cli, HTTP'
     )
-    c4.edge['label-0.2'](ext_user.t, portal.l['async-10'], 'Creates registration keys', 'Browser')
-    c4.edge['label--0.3'](ext_host.r, packages, 'Downloads patches', 'cli, HTTP')
-    c4.edge['label-0.2'](ext_host.b, cdn.l, 'Downloads package updates', 'yum, apt, HTTP')
-    c4.edge['label-0.2/6'](
+    c4.edge['label-60'](ext_user.t, portal.l['async-10'], 'Creates registration keys', 'Browser')
+    c4.edge['label-33'](ext_host.r, packages, 'Downloads patches', 'cli, HTTP')
+    c4.edge['label-60'](ext_host.b, cdn.l, 'Downloads package updates', 'yum, apt, HTTP')
+    c4.edge['label-66/6'](
         portal.b[1], packages.t[1], 'Pushes license updates', 'python script, SSH'
     )
-    c4.edge['label-0.3'](packages.t[0.2], portal.b[0.2], 'Pushes usage data', 'Postgres')
+    c4.edge['label-66'](packages.t[0.2], portal.b[0.2], 'Pushes usage data', 'Postgres')
 
     render('showcase.drawio', s)
 
