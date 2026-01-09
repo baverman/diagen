@@ -4,7 +4,16 @@ from typing import Callable, Generic, Iterable, Mapping, TypeVar
 
 from .props import BackendStyle, ClassList, EdgeKeys, EdgeProps, NodeKeys, NodeProps
 
-__all__ = ['NodeProps', 'EdgeProps', 'NodeKeys', 'EdgeKeys', 'BackendStyle', 'ClassList']
+__all__ = [
+    'NodeProps',
+    'EdgeProps',
+    'NodeKeys',
+    'EdgeKeys',
+    'BackendStyle',
+    'ClassList',
+    'KeysT',
+    'PropsT',
+]
 
 KeysT = TypeVar('KeysT', NodeKeys, EdgeKeys)
 PropsT = TypeVar('PropsT', NodeProps, EdgeProps)

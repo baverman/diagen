@@ -4,9 +4,13 @@
   - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
-* Merge props in factories as they go. To avoid O(N^2) calculations.
 * Create some diagrams
 
 # Investigate
 
 * Lazy node/edges styles to get opportunity to adjust drawio lists, for example extend arrow styles?
+* I don't like current approach with proplist to only aid tests. Props resolution
+  should be local and predictable. Either use only prop lists and allow root property changes. Or use
+  precalculated props (I prefer this approach, it allows styles to depend on existing values and do not
+  think about sudden root changes) but it need to fix tests.
+* Consider to use frozen dataclass for props. It would allow to remove copy on every access.

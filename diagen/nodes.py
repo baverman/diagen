@@ -1,15 +1,18 @@
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import Any, Collection, Iterable, Self, Union
+from typing import Any, Collection, Generic, Iterable, Self, Union, Unpack
 
 from .stylemap import (
     ClassList,
     EdgeKeys,
     EdgeProps,
     EdgeStyleMap,
+    KeysT,
     NodeKeys,
     NodeProps,
     NodeStyleMap,
+    PropsT,
+    StyleMap,
 )
 
 _children_stack: list[list['Node']] = []
@@ -23,7 +26,7 @@ class Node:
     edges: list['Edge']
 
     def __init__(
-        self, props: NodeProps, children: Collection[AnyNode], styles: NodeStyleMap
+        self, props: NodeProps, children: Collection[AnyNode], stylemap: NodeStyleMap
     ) -> None:
         self.id = ''
         self.parent = None
@@ -31,7 +34,7 @@ class Node:
         self.label = list(it for it in children if isinstance(it, str))
         self.children = list(it for it in children if isinstance(it, Node))
         self.position: tuple[float, float] = (0, 0)
-        self.styles = styles
+        self.stylemap = stylemap
         self.edges = []
 
         self._added = False
@@ -186,14 +189,14 @@ class Edge:
         source: AnyEdgePort,
         target: AnyEdgePort,
         label: Collection[str],
-        styles: EdgeStyleMap,
+        stylemap: EdgeStyleMap,
     ) -> None:
         self.id = ''
         self.props = props
         self.source = source
         self.target = target
         self.label = list(label)
-        self.styles = styles
+        self.stylemap = stylemap
 
         source.node_ref.edges.append(self)
         self._apply_port_styles(source, 'start-')
@@ -204,7 +207,7 @@ class Edge:
     def _apply_port_styles(self, port: AnyEdgePort, prefix: str) -> None:
         if isinstance(port, Port):
             if port.classes:
-                self.styles.resolve_classes([prefix + it for it in port.classes], self.props)
+                self.stylemap.resolve_classes([prefix + it for it in port.classes], self.props)
 
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
@@ -215,19 +218,38 @@ class Edge:
                 yield it
 
 
-class NodeFactory:
-    def __init__(self, styles: NodeStyleMap, props: tuple[NodeKeys, ...] = ()):
-        self.props = props
-        self.styles = styles
+class BaseFactory(Generic[PropsT, KeysT]):
+    stylemap: StyleMap[PropsT, KeysT]
+    proplist: tuple[KeysT, ...]
+
+    def __init__(self, stylemap: StyleMap[PropsT, KeysT], proplist: tuple[KeysT, ...] = ()):
+        self.proplist = proplist
+        self.stylemap = stylemap
+
+    def __getitem__(self, classes: ClassList) -> Self:
+        return type(self)(self.stylemap, self.proplist + ({'classes': classes},))
+
+    @cached_property
+    def _props(self) -> PropsT:
+        return self.stylemap.resolve_props(self.proplist)
+
+    def _make_props(self, props: KeysT | None) -> PropsT:
+        fprops = replace(self._props)
+        if props is not None:
+            self.stylemap.resolve_props((props,), fprops)
+        return fprops
+
+    def _add_props(self, props: KeysT) -> Self:
+        return type(self)(self.stylemap, self.proplist + (props,))
+
+
+class NodeFactory(BaseFactory[NodeProps, NodeKeys]):
+    def __init__(self, stylemap: NodeStyleMap, proplist: tuple[NodeKeys, ...] = ()):
+        super().__init__(stylemap, proplist)
         self._cm_stack: list[Node] = []
 
-    def __getitem__(self, classes: str) -> 'NodeFactory':
-        return NodeFactory(self.styles, self.props + ({'classes': classes},))
-
     def __call__(self, *rest: AnyNode, props: NodeKeys | None = None) -> Node:
-        nprops = (*self.props, props) if props is not None else self.props
-        fprops = self.styles.resolve_props(nprops)
-        return Node(fprops, rest, self.styles)
+        return Node(self._make_props(props), rest, self.stylemap)
 
     def __enter__(self) -> Node:
         node = self()
@@ -238,18 +260,15 @@ class NodeFactory:
         node = self._cm_stack.pop()
         return node.__exit__(*args)
 
+    def props(self, **kwargs: Unpack[NodeKeys]) -> Self:
+        return self._add_props(kwargs)
 
-class EdgeFactory:
-    def __init__(self, styles: EdgeStyleMap, props: tuple[EdgeKeys, ...] = ()):
-        self.styles = styles
-        self.props = props
 
-    def __getitem__(self, classes: str) -> 'EdgeFactory':
-        return EdgeFactory(self.styles, self.props + ({'classes': classes},))
-
+class EdgeFactory(BaseFactory[EdgeProps, EdgeKeys]):
     def __call__(
         self, source: AnyEdgePort, target: AnyEdgePort, /, *rest: str, props: EdgeKeys | None = None
     ) -> Edge:
-        nprops = (*self.props, props) if props is not None else self.props
-        fprops = self.styles.resolve_props(nprops)
-        return Edge(fprops, source, target, rest, self.styles)
+        return Edge(self._make_props(props), source, target, rest, self.stylemap)
+
+    def props(self, **kwargs: Unpack[EdgeKeys]) -> Self:
+        return self._add_props(kwargs)

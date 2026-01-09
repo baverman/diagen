@@ -7,6 +7,10 @@ def type_check_edge_factory_invalid_signature() -> None:
     edge(n)  # type: ignore[call-arg]
 
 
+def type_check_props_chain_signature() -> None:
+    node.props(invalid=10)  # type: ignore[call-arg]
+
+
 def test_node_factory_signatures() -> None:
     node()
 
@@ -34,3 +38,10 @@ def test_edge_factory_signatures() -> None:
     assert result.source == s
     assert result.target == t
     assert result.props.scale == 10
+
+
+def test_props_builder() -> None:
+    fancy = node.props(size=(42, 42))
+
+    n = fancy()
+    assert n.props.size == (42, 42)
