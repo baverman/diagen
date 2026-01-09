@@ -1,19 +1,24 @@
+from typing import Callable
+
 import pytest
 
 from diagen import drawio, stack, vstack
+from diagen.nodes import Node
 from diagen.shapes import c4
+
+RenderFn = Callable[[str, Node], None]
 
 
 @pytest.fixture
-def render(tmp_path_factory):
-    def inner(fname, s):
+def render(tmp_path_factory: pytest.TempPathFactory) -> RenderFn:
+    def inner(fname: str, s: Node) -> None:
         with open(tmp_path_factory.getbasetemp() / fname, 'w') as f:
             f.write(drawio.render(s, compress=False))
 
     return inner
 
 
-def test_full(render):
+def test_full(render: RenderFn) -> None:
     with stack['p-12 gap-24'] as s:
         with vstack['gap-40']:
             ext_user = c4.ExtPerson('Customer')
@@ -38,7 +43,7 @@ def test_full(render):
     render('showcase.drawio', s)
 
 
-def test_c4_shapes(render):
+def test_c4_shapes(render: RenderFn) -> None:
     with c4.Boundary['dv gap-8 grid-3 items-align-start items-valign-end']('Boundary') as s:
         with stack['col-1: gap-8']:
             c4.Person('Person')

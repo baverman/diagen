@@ -2,7 +2,7 @@ from diagen import styles
 from diagen.utils import kebab_case
 
 
-def test_arrow_classes():
+def test_arrow_classes() -> None:
     result = set(kebab_case(it) for it in styles.ARROW_TYPES)
     assert result == {
         'none',

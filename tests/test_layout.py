@@ -2,15 +2,15 @@ import pytest
 
 from diagen import grid, node, stack, vstack
 
-from .conftest import set_scale
+from .conftest import MockerFixture, set_scale
 
 
 @pytest.fixture(autouse=True)
-def setup(mocker):
+def setup(mocker: MockerFixture) -> None:
     set_scale(mocker, 1)
 
 
-def test_hstack():
+def test_hstack() -> None:
     s = stack['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
     assert s.size[0] == 2 + 2 + 1 + 2
     assert s.size[1] == 5
@@ -21,7 +21,7 @@ def test_hstack():
     assert n2.position == (4, 1)
 
 
-def test_vstack():
+def test_vstack() -> None:
     s = vstack['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
     assert s.size[1] == 2 + 2 + 1 + 3
     assert s.size[0] == 4
@@ -32,7 +32,7 @@ def test_vstack():
     assert n2.position == (1, 4)
 
 
-def test_stack_items_align():
+def test_stack_items_align() -> None:
     s = stack['items-align-start'](n1 := node['w-1 h-1'](), n2 := node['w-1 h-3']())
 
     s.arrange()
@@ -40,7 +40,7 @@ def test_stack_items_align():
     assert n2.position == (1, 0)
 
 
-def test_stack_align():
+def test_stack_align() -> None:
     s = stack['items-align-start'](n1 := node['w-1 h-1 align-end'](), n2 := node['w-1 h-3']())
 
     s.arrange()
@@ -48,7 +48,7 @@ def test_stack_align():
     assert n2.position == (1, 0)
 
 
-def test_grid():
+def test_grid() -> None:
     with grid['p-1 gap-1'] as s:
         n11 = node['w-1 h-1']()
         n12 = node['w-1 h-3']()
@@ -62,7 +62,7 @@ def test_grid():
     assert n22.position == (5, 5)
 
 
-def test_context_manager():
+def test_context_manager() -> None:
     with stack as s:
         n1 = node()
         n2 = stack(n3 := node())
