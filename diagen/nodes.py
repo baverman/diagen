@@ -234,9 +234,10 @@ class BaseFactory(Generic[PropsT, KeysT]):
         return self.stylemap.resolve_props(self.proplist)
 
     def _make_props(self, props: KeysT | None) -> PropsT:
-        fprops = replace(self._props)
         if props is not None:
-            self.stylemap.resolve_props((props,), fprops)
+            fprops = self.stylemap.resolve_props((props,), replace(self._props))
+        else:
+            fprops = self._props
         return fprops
 
     def _add_props(self, props: KeysT) -> Self:

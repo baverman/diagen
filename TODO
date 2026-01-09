@@ -13,4 +13,3 @@
   should be local and predictable. Either use only prop lists and allow root property changes. Or use
   precalculated props (I prefer this approach, it allows styles to depend on existing values and do not
   think about sudden root changes) but it need to fix tests.
-* Consider to use frozen dataclass for props. It would allow to remove copy on every access.

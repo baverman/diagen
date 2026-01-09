@@ -15,7 +15,7 @@ class Layout(Protocol):
     def arrange(self, node: 'Node') -> None: ...
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class NodeProps:
     direction: int
     layout: 'Layout'
@@ -59,7 +59,7 @@ class NodeKeys(TypedDict, total=False):
     drawio_style: BackendStyle | str
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class EdgeProps:
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]

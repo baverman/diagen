@@ -41,7 +41,7 @@ class Layout(Protocol):
     def arrange(self, node: 'Node') -> None: ...
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class NodeProps:
 {NODE_PROPS}
 
@@ -55,7 +55,7 @@ class NodeKeys(TypedDict, total=False):
     drawio_style: BackendStyle | str
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class EdgeProps:
 {EDGE_PROPS}
 
