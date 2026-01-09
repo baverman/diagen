@@ -1,9 +1,5 @@
-import pytest
-
 from diagen import styles
 from diagen.props import NodeKeys, NodeProps
-
-from .conftest import MockerFixture, set_scale
 
 resolve_classes = styles.node.resolve_classes
 edge_resolve_classes = styles.edge.resolve_classes
@@ -13,17 +9,28 @@ def nprops(data: NodeKeys) -> NodeProps:
     return data  # type: ignore[return-value]
 
 
-@pytest.fixture(autouse=True)
-def setup(mocker: MockerFixture) -> None:
-    set_scale(mocker, 4)
-
-
 def test_resolve_rules() -> None:
     result = resolve_classes('p-1 px-2')
     assert result.padding == (8, 4, 8, 4)
 
 
-def test_resolve_classes(mocker: MockerFixture) -> None:
+def test_resolve_is_immutable() -> None:
+    props = styles.node.default_props()
+
+    styles.node.resolve_classes('p-1', props)
+    assert props.padding == (0, 0, 0, 0)
+
+    styles.node.resolve_props(({'scale': 42},), props)
+    assert props.scale == 4
+
+    styles.node.resolve_classes('p-1', props, inplace=True)
+    assert props.padding == (4, 4, 4, 4)
+
+    styles.node.resolve_props(({'scale': 42},), props, inplace=True)
+    assert props.scale == 42
+
+
+def test_resolve_classes() -> None:
     styles.node.update({'some': {'classes': 'p-1 px-2', 'gap': (20, 20)}})
     result = resolve_classes('some')
     assert result.padding == (8, 4, 8, 4)

@@ -105,16 +105,20 @@ class StyleMap(Generic[PropsT, KeysT]):
         result = self._rule_cache[cls] = self._rules_map[prefix].fn, value
         return result
 
-    def resolve_classes(self, classes: ClassList, result: PropsT | None = None) -> PropsT:
+    def resolve_classes(
+        self, classes: ClassList, result: PropsT | None = None, inplace: bool = False
+    ) -> PropsT:
         if result is None:
             result = self.default_props()
+        elif not inplace:
+            result = replace(result)
 
         if type(classes) is str:
             classes = [it.strip() for it in classes.split()]
 
         for it in classes:
             if it in self._styles:
-                self.resolve_props((self._styles[it],), result)
+                self.resolve_props((self._styles[it],), result, inplace=True)
             else:
                 match = self._rule_value(it)
                 if match:
@@ -128,14 +132,18 @@ class StyleMap(Generic[PropsT, KeysT]):
         drawio_style = merge_drawio_style(result.drawio_style, get_style(data.get('drawio_style')))
         vars(result).update(data, drawio_style=drawio_style)
 
-    def resolve_props(self, props: Iterable[KeysT], result: PropsT | None = None) -> PropsT:
+    def resolve_props(
+        self, props: Iterable[KeysT], result: PropsT | None = None, inplace: bool = False
+    ) -> PropsT:
         if result is None:
             result = self.default_props()
+        elif not inplace:
+            result = replace(result)
 
         for p in props:
             classes: ClassList
             if classes := p.get('classes'):  # type: ignore[assignment]
-                self.resolve_classes(classes, result)
+                self.resolve_classes(classes, result, inplace=True)
             self.merge(result, p)
 
         return result

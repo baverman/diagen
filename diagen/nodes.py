@@ -207,7 +207,9 @@ class Edge:
     def _apply_port_styles(self, port: AnyEdgePort, prefix: str) -> None:
         if isinstance(port, Port):
             if port.classes:
-                self.stylemap.resolve_classes([prefix + it for it in port.classes], self.props)
+                self.props = self.stylemap.resolve_classes(
+                    [prefix + it for it in port.classes], self.props
+                )
 
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
@@ -220,33 +222,28 @@ class Edge:
 
 class BaseFactory(Generic[PropsT, KeysT]):
     stylemap: StyleMap[PropsT, KeysT]
-    proplist: tuple[KeysT, ...]
+    factory_props: PropsT
 
-    def __init__(self, stylemap: StyleMap[PropsT, KeysT], proplist: tuple[KeysT, ...] = ()):
-        self.proplist = proplist
+    def __init__(self, stylemap: StyleMap[PropsT, KeysT], props: PropsT | None = None):
+        self.factory_props = props if props is not None else stylemap.default_props()
         self.stylemap = stylemap
 
     def __getitem__(self, classes: ClassList) -> Self:
-        return type(self)(self.stylemap, self.proplist + ({'classes': classes},))
-
-    @cached_property
-    def _props(self) -> PropsT:
-        return self.stylemap.resolve_props(self.proplist)
+        nprops = self.stylemap.resolve_classes(classes, self.factory_props)
+        return type(self)(self.stylemap, nprops)
 
     def _make_props(self, props: KeysT | None) -> PropsT:
         if props is not None:
-            fprops = self.stylemap.resolve_props((props,), replace(self._props))
-        else:
-            fprops = self._props
-        return fprops
+            return self.stylemap.resolve_props((props,), self.factory_props)
+        return self.factory_props
 
     def _add_props(self, props: KeysT) -> Self:
-        return type(self)(self.stylemap, self.proplist + (props,))
+        return type(self)(self.stylemap, self._make_props(props))
 
 
 class NodeFactory(BaseFactory[NodeProps, NodeKeys]):
-    def __init__(self, stylemap: NodeStyleMap, proplist: tuple[NodeKeys, ...] = ()):
-        super().__init__(stylemap, proplist)
+    def __init__(self, stylemap: NodeStyleMap, props: NodeProps | None = None):
+        super().__init__(stylemap, props)
         self._cm_stack: list[Node] = []
 
     def __call__(self, *rest: AnyNode, props: NodeKeys | None = None) -> Node:

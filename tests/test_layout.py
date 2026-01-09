@@ -1,13 +1,9 @@
-import pytest
+import diagen
 
-from diagen import grid, node, stack, vstack
-
-from .conftest import MockerFixture, set_scale
-
-
-@pytest.fixture(autouse=True)
-def setup(mocker: MockerFixture) -> None:
-    set_scale(mocker, 1)
+grid = diagen.grid.props(scale=1)
+node = diagen.node.props(scale=1)
+stack = diagen.stack.props(scale=1)
+vstack = diagen.vstack.props(scale=1)
 
 
 def test_hstack() -> None:
