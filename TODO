@@ -6,7 +6,6 @@
 
 * Merge props in factories as they go. To avoid O(N^2) calculations.
 * Create some diagrams
-* Type node factory call args
 
 # Investigate
 

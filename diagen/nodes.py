@@ -14,6 +14,8 @@ from .stylemap import (
 
 _children_stack: list[list['Node']] = []
 
+AnyNode = Union['Node', str]
+
 
 class Node:
     children: list['Node']
@@ -21,7 +23,7 @@ class Node:
     edges: list['Edge']
 
     def __init__(
-        self, props: NodeProps, children: Collection[Union['Node', str]], styles: NodeStyleMap
+        self, props: NodeProps, children: Collection[AnyNode], styles: NodeStyleMap
     ) -> None:
         self.id = ''
         self.parent = None
@@ -222,19 +224,10 @@ class NodeFactory:
     def __getitem__(self, classes: str) -> 'NodeFactory':
         return NodeFactory(self.styles, self.props + ({'classes': classes},))
 
-    def __call__(self, *args: Any) -> Node:
-        props: tuple[NodeKeys, ...] = self.props
-        children: tuple[Node | str, ...]
-        if not args:
-            children = ()
-        elif isinstance(args[0], (Node, str)):
-            children = args
-        else:
-            props = (*self.props, args[0])
-            children = args[1:]
-
-        fprops = self.styles.resolve_props(props)
-        return Node(fprops, children, self.styles)
+    def __call__(self, *rest: AnyNode, props: NodeKeys | None = None) -> Node:
+        nprops = (*self.props, props) if props is not None else self.props
+        fprops = self.styles.resolve_props(nprops)
+        return Node(fprops, rest, self.styles)
 
     def __enter__(self) -> Node:
         node = self()
@@ -254,16 +247,9 @@ class EdgeFactory:
     def __getitem__(self, classes: str) -> 'EdgeFactory':
         return EdgeFactory(self.styles, self.props + ({'classes': classes},))
 
-    def __call__(self, *args: Any) -> Edge:
-        props = self.props
-        rest: tuple[Any, ...]
-        if not args:
-            rest = ()
-        elif isinstance(args[0], dict):
-            props = (*self.props, args[0])  # type: ignore[arg-type]
-            rest = args[1:]
-        else:
-            rest = args
-
-        fprops = self.styles.resolve_props(props)
-        return Edge(fprops, rest[0], rest[1], rest[2:], self.styles)
+    def __call__(
+        self, source: AnyEdgePort, target: AnyEdgePort, /, *rest: str, props: EdgeKeys | None = None
+    ) -> Edge:
+        nprops = (*self.props, props) if props is not None else self.props
+        fprops = self.styles.resolve_props(nprops)
+        return Edge(fprops, source, target, rest, self.styles)
