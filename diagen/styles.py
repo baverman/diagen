@@ -1,3 +1,4 @@
+from dataclasses import replace
 from typing import Iterable, Literal, TypeVar, overload
 
 from .layouts.box import BoxLayout
@@ -22,12 +23,10 @@ def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> s
     return '\n'.join(label)
 
 
-def setScale(
-    name: Literal['padding', 'size', 'gap'], scale_name: Literal['scale'], *pos: int
-) -> NodeRuleValue:
+def setAt(name: Literal['padding', 'size', 'gap'], *pos: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         dyn: NodeKeys = vars(current)  # type: ignore[assignment]
-        v = float(value) * dyn[scale_name]
+        v = float(value)
         if pos:
             result = list(dyn[name])
             for p in pos:
@@ -37,6 +36,24 @@ def setScale(
             return {name: v}  # type: ignore[misc]
 
     return inner
+
+
+def evaluated_node_props(props: NodeProps) -> NodeProps:
+    m = props.scale
+    s = props.size
+    g = props.gap
+    p = props.padding
+    return replace(
+        props,
+        size=(s[0] * m, s[1] * m),
+        gap=(g[0] * m, g[1] * m),
+        padding=(
+            p[0] * m,
+            p[1] * m,
+            p[2] * m,
+            p[3] * m,
+        ),
+    )
 
 
 def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
@@ -83,7 +100,7 @@ def setNodeSize(value: str, current: NodeProps) -> NodeKeys:
     h, _, t = value.partition('/')
     if not t:
         t = h
-    return {'size': (float(h) * current.scale, float(t) * current.scale)}
+    return {'size': (float(h), float(t))}
 
 
 def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
@@ -184,19 +201,19 @@ node.update(
 
 node.add_rules(
     [
-        rule('p', setScale('padding', 'scale', 0, 1, 2, 3)),
-        rule('px', setScale('padding', 'scale', 0, 2)),
-        rule('py', setScale('padding', 'scale', 1, 3)),
-        rule('pl', setScale('padding', 'scale', 0)),
-        rule('pr', setScale('padding', 'scale', 2)),
-        rule('pt', setScale('padding', 'scale', 1)),
-        rule('pb', setScale('padding', 'scale', 3)),
+        rule('p', setAt('padding', 0, 1, 2, 3)),
+        rule('px', setAt('padding', 0, 2)),
+        rule('py', setAt('padding', 1, 3)),
+        rule('pl', setAt('padding', 0)),
+        rule('pr', setAt('padding', 2)),
+        rule('pt', setAt('padding', 1)),
+        rule('pb', setAt('padding', 3)),
         rule('size', setNodeSize),
-        rule('w', setScale('size', 'scale', 0)),
-        rule('h', setScale('size', 'scale', 1)),
-        rule('gap', setScale('gap', 'scale', 0, 1)),
-        rule('gapx', setScale('gap', 'scale', 0)),
-        rule('gapy', setScale('gap', 'scale', 1)),
+        rule('w', setAt('size', 0)),
+        rule('h', setAt('size', 1)),
+        rule('gap', setAt('gap', 0, 1)),
+        rule('gapx', setAt('gap', 0)),
+        rule('gapy', setAt('gap', 1)),
         rule('grid', lambda value, _: {'layout': GridLayout, 'grid_columns': int(value)}),
         rule('col', setGridCol('grid_col')),
         rule('align', setAlign('align', 0)),

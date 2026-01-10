@@ -17,6 +17,7 @@ NODE_PROPS = """\
     label_formatter: Callable[['NodeProps', list[str]], str]
 """.rstrip()
 
+
 EDGE_PROPS = """\
     scale: float
     label_formatter: Callable[['EdgeProps', list[str]], str]

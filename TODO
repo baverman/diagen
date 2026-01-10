@@ -4,6 +4,7 @@
   - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
+* Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams
 
 # Investigate

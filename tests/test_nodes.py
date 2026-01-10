@@ -41,7 +41,7 @@ def test_edge_factory_signatures() -> None:
 
 
 def test_props_builder() -> None:
-    fancy = node.props(size=(42, 42))
+    fancy = node.props(scale=1, size=(42, 42))
 
     n = fancy()
     assert n.props.size == (42, 42)

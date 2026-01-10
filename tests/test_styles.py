@@ -1,5 +1,5 @@
 from diagen import styles
-from diagen.props import NodeKeys, NodeProps
+from diagen.stylemap import NodeKeys, NodeProps
 
 resolve_classes = styles.node.resolve_classes
 edge_resolve_classes = styles.edge.resolve_classes
@@ -11,7 +11,7 @@ def nprops(data: NodeKeys) -> NodeProps:
 
 def test_resolve_rules() -> None:
     result = resolve_classes('p-1 px-2')
-    assert result.padding == (8, 4, 8, 4)
+    assert result.padding == (2, 1, 2, 1)
 
 
 def test_resolve_is_immutable() -> None:
@@ -24,7 +24,7 @@ def test_resolve_is_immutable() -> None:
     assert props.scale == 4
 
     styles.node.resolve_classes('p-1', props, inplace=True)
-    assert props.padding == (4, 4, 4, 4)
+    assert props.padding == (1, 1, 1, 1)
 
     styles.node.resolve_props(({'scale': 42},), props, inplace=True)
     assert props.scale == 42
@@ -33,7 +33,7 @@ def test_resolve_is_immutable() -> None:
 def test_resolve_classes() -> None:
     styles.node.update({'some': {'classes': 'p-1 px-2', 'gap': (20, 20)}})
     result = resolve_classes('some')
-    assert result.padding == (8, 4, 8, 4)
+    assert result.padding == (2, 1, 2, 1)
     assert result.gap == (20, 20)
 
 

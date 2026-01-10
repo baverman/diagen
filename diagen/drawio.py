@@ -58,7 +58,7 @@ def port_element(
         'vertex': '1',
         'style': 'container=0;fillColor=none;strokeColor=none',
     }
-    port_node = base_node(props=NodeKeys(size=(3, 3)))
+    port_node = base_node(props=NodeKeys(scale=1, size=(3, 3)))
     ac = node.origin[axis] + offset[0] * node.size[axis] - 1.5
     oc = node.origin[o] + (node.size[o] - 3) / 2.0 * (align + 1) + offset[1]
     port_node.position = dtup2(axis, ac, oc)

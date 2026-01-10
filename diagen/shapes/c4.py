@@ -1,5 +1,5 @@
 from .. import base_edge, base_node, styles
-from ..props import EdgeProps, NodeProps
+from ..stylemap import EdgeProps, NodeProps
 
 
 def c4_label_fmt(props: NodeProps | EdgeProps, label: list[str]) -> str:

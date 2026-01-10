@@ -14,6 +14,7 @@ from .stylemap import (
     PropsT,
     StyleMap,
 )
+from .styles import evaluated_node_props
 
 _children_stack: list[list['Node']] = []
 
@@ -70,9 +71,10 @@ class Node:
 
     @cached_property
     def size(self) -> tuple[float, float]:
+        w, h = self.props.size
         return (
-            self.props.layout.size(self, 0) if self.props.size[0] < 0 else self.props.size[0],
-            self.props.layout.size(self, 1) if self.props.size[1] < 0 else self.props.size[1],
+            self.props.layout.size(self, 0) if w < 0 else w,
+            self.props.layout.size(self, 1) if h < 0 else h,
         )
 
     def arrange(self) -> None:
@@ -247,7 +249,7 @@ class NodeFactory(BaseFactory[NodeProps, NodeKeys]):
         self._cm_stack: list[Node] = []
 
     def __call__(self, *rest: AnyNode, props: NodeKeys | None = None) -> Node:
-        return Node(self._make_props(props), rest, self.stylemap)
+        return Node(evaluated_node_props(self._make_props(props)), rest, self.stylemap)
 
     def __enter__(self) -> Node:
         node = self()

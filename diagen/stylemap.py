@@ -15,6 +15,7 @@ __all__ = [
     'PropsT',
 ]
 
+
 KeysT = TypeVar('KeysT', NodeKeys, EdgeKeys)
 PropsT = TypeVar('PropsT', NodeProps, EdgeProps)
 
