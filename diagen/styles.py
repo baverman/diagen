@@ -168,6 +168,23 @@ def setEdgeArrowShape(prefix: str, name: str) -> EdgeRuleValue:
     return setter
 
 
+def setEdgeEndSpacing(prefix: str, end: int) -> EdgeRuleValue:
+    def setter(value: str, current: EdgeProps) -> EdgeKeys:
+        return {
+            'spacing': mux2(end, float(value), current.spacing),
+            'drawio_style': {'@pop': [prefix + 'PerimeterSpacing']},
+        }
+
+    return setter
+
+
+def setEdgeSpacing(value: str, current: EdgeProps) -> EdgeKeys:
+    return {
+        'spacing_both': float(value),
+        'drawio_style': {'@pop': ['perimeterSpacing']},
+    }
+
+
 node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
@@ -233,7 +250,21 @@ def eval_edge_props(props: EdgeProps) -> EdgeProps:
 
     drawio_style: BackendStyle = {}
     if props.arc_size is not None:
-        drawio_style = {**drawio_style, 'arcSize': m * props.arc_size, **props.drawio_style}
+        drawio_style['arcSize'] = m * props.arc_size
+
+    if props.spacing_both is not None:
+        drawio_style['perimeterSpacing'] = m * props.spacing_both
+
+    if props.spacing[0] is not None:
+        drawio_style['sourcePerimeterSpacing'] = m * props.spacing[0]
+
+    if props.spacing[1] is not None:
+        drawio_style['targetPerimeterSpacing'] = m * props.spacing[1]
+
+    if drawio_style:
+        drawio_style.update(props.drawio_style)
+    else:
+        drawio_style = props.drawio_style
 
     return replace(
         props, label_offset=(lo[0], lo[1] * m), drawio_style=drawio_style or props.drawio_style
@@ -247,6 +278,8 @@ edge = StyleMap[EdgeProps, EdgeKeys](
         drawio_style={},
         label_formatter=default_label_formatter,
         label_offset=(0, 0),
+        spacing=(None, None),
+        spacing_both=None,
     ),
     eval_fn=eval_edge_props,
 )
@@ -344,6 +377,7 @@ edge.add_rules(
         rule('color', lambda value, current: {'drawio_style': {'strokeColor': value}}),
         rule('dashed', setDashed),
         rule('shadow', setShadow),
+        rule('space', setEdgeSpacing),
     ]
 )
 
@@ -362,6 +396,9 @@ def addArrowStyles(arrows: Iterable[str]) -> None:
         classes[class_prefix + 'fill-none'] = {'drawio_style': {style_prefix + 'Fill': 0}}
         rules.append(rule(class_prefix + 'fill', setEdgeEndFill(style_prefix)))
         rules.append(rule(class_prefix + 'size', setEdgeEndSize(style_prefix)))
+
+    for class_prefix, style_prefix, end in ('start-', 'source', 0), ('end-', 'target', 1):
+        rules.append(rule(class_prefix + 'space', setEdgeEndSpacing(style_prefix, end)))
 
     edge.update(classes)
     edge.add_rules(rules)

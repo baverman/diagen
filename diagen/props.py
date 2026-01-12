@@ -65,6 +65,8 @@ class EdgeProps:
     arc_size: float | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
+    spacing: tuple[float | None, float | None]
+    spacing_both: float | None
 
     drawio_style: BackendStyle
 
@@ -74,6 +76,8 @@ class EdgeKeys(TypedDict, total=False):
     arc_size: float | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
+    spacing: tuple[float | None, float | None]
+    spacing_both: float | None
 
     classes: ClassList
     drawio_style: BackendStyle | str

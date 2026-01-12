@@ -1,12 +1,9 @@
 # TODO
 
 * Export all edge UI styles as tags
-  - sourcePerimeterSpacing/targetPerimiterSpacing
   - jumpStyle/jumpSize
 
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams
 
 # Investigate
-
-* Lazy node/edges styles to get opportunity to adjust drawio lists, for example extend arrow styles?
