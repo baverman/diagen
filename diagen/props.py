@@ -62,6 +62,7 @@ class NodeKeys(TypedDict, total=False):
 @dataclass(frozen=True, kw_only=True)
 class EdgeProps:
     scale: float
+    arc_size: float | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
 
@@ -70,6 +71,7 @@ class EdgeProps:
 
 class EdgeKeys(TypedDict, total=False):
     scale: float
+    arc_size: float | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
 

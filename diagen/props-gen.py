@@ -20,6 +20,7 @@ NODE_PROPS = """\
 
 EDGE_PROPS = """\
     scale: float
+    arc_size: float | None
     label_formatter: Callable[['EdgeProps', list[str]], str]
     label_offset: tuple[float, float]
 """.rstrip()

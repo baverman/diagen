@@ -66,19 +66,26 @@ def merge_drawio_style(old: BackendStyle, new: BackendStyle) -> BackendStyle:
     return result
 
 
+EvalPropsFn = Callable[[PropsT], PropsT]
+
+
 class StyleMap(Generic[PropsT, KeysT]):
     _styles: dict[str, KeysT]
     _rules: list[rule[PropsT, KeysT]]
     _rules_re: re.Pattern[str]
     _rules_map: dict[str, rule[PropsT, KeysT]]
     _default_props: PropsT
+    _eval_fn: EvalPropsFn[PropsT] | None
 
-    def __init__(self, default_props: PropsT) -> None:
+    def __init__(
+        self, default_props: PropsT, *, eval_fn: EvalPropsFn[PropsT] | None = None
+    ) -> None:
         self._styles = {}
         self._rules = []
         self._rule_cache: dict[str, tuple[RuleValue[PropsT, KeysT], str]] = {}
         self._process_rules()
         self._default_props = default_props
+        self._eval_fn = eval_fn
 
     def update(self, styles: Mapping[str, KeysT]) -> None:
         self._styles.update(styles)
@@ -151,6 +158,9 @@ class StyleMap(Generic[PropsT, KeysT]):
 
     def default_props(self) -> PropsT:
         return replace(self._default_props)
+
+    def eval_props(self, props: PropsT) -> PropsT:
+        return self._eval_fn(props) if self._eval_fn else props
 
 
 NodeStyleMap = StyleMap[NodeProps, NodeKeys]

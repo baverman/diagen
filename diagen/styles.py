@@ -38,7 +38,7 @@ def setAt(name: Literal['padding', 'size', 'gap'], *pos: int) -> NodeRuleValue:
     return inner
 
 
-def evaluated_node_props(props: NodeProps) -> NodeProps:
+def eval_node_props(props: NodeProps) -> NodeProps:
     m = props.scale
     s = props.size
     g = props.gap
@@ -113,7 +113,8 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
             v0 = v0 / 50 - 1
     else:
         v0 = c[0]
-    v1 = (float(t) * current.scale) if t else c[1]
+
+    v1 = float(t) if t else c[1]
     return {'label_offset': (v0, v1)}
 
 
@@ -183,7 +184,8 @@ node = StyleMap[NodeProps, NodeKeys](
         align=(None, None),
         grid_columns=None,
         grid_col=None,
-    )
+    ),
+    eval_fn=eval_node_props,
 )
 
 node.update(
@@ -225,13 +227,28 @@ node.add_rules(
 )
 
 
+def eval_edge_props(props: EdgeProps) -> EdgeProps:
+    m = props.scale
+    lo = props.label_offset
+
+    drawio_style: BackendStyle = {}
+    if props.arc_size is not None:
+        drawio_style = {**drawio_style, 'arcSize': m * props.arc_size, **props.drawio_style}
+
+    return replace(
+        props, label_offset=(lo[0], lo[1] * m), drawio_style=drawio_style or props.drawio_style
+    )
+
+
 edge = StyleMap[EdgeProps, EdgeKeys](
     EdgeProps(
         scale=4.0,
+        arc_size=None,
         drawio_style={},
         label_formatter=default_label_formatter,
         label_offset=(0, 0),
-    )
+    ),
+    eval_fn=eval_edge_props,
 )
 
 EDGE_CURVE_TYPES = ['rounded', 'curved']
@@ -309,9 +326,8 @@ edge.add_rules(
         rule(
             'rounded',
             lambda value, current: {
-                'drawio_style': cstyle(
-                    EDGE_CURVE_TYPES, rounded=1, arcSize=int(current.scale * float(value))
-                )
+                'arc_size': float(value),
+                'drawio_style': cstyle(EDGE_CURVE_TYPES + ['arcSize'], rounded=1),
             },
         ),
         rule(

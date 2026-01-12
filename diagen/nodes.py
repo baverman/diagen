@@ -14,7 +14,6 @@ from .stylemap import (
     PropsT,
     StyleMap,
 )
-from .styles import evaluated_node_props
 
 _children_stack: list[list['Node']] = []
 
@@ -31,7 +30,7 @@ class Node:
     ) -> None:
         self.id = ''
         self.parent = None
-        self.props = props
+        self.props = stylemap.eval_props(props)
         self.label = list(it for it in children if isinstance(it, str))
         self.children = list(it for it in children if isinstance(it, Node))
         self.position: tuple[float, float] = (0, 0)
@@ -206,6 +205,8 @@ class Edge:
         target.node_ref.edges.append(self)
         self._apply_port_styles(target, 'end-')
 
+        self.props = stylemap.eval_props(self.props)
+
     def _apply_port_styles(self, port: AnyEdgePort, prefix: str) -> None:
         if isinstance(port, Port):
             if port.classes:
@@ -249,7 +250,7 @@ class NodeFactory(BaseFactory[NodeProps, NodeKeys]):
         self._cm_stack: list[Node] = []
 
     def __call__(self, *rest: AnyNode, props: NodeKeys | None = None) -> Node:
-        return Node(evaluated_node_props(self._make_props(props)), rest, self.stylemap)
+        return Node(self._make_props(props), rest, self.stylemap)
 
     def __enter__(self) -> Node:
         node = self()
