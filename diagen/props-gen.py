@@ -25,6 +25,7 @@ EDGE_PROPS = """\
     label_offset: tuple[float, float]
     spacing: tuple[float | None, float | None]
     spacing_both: float | None
+    jump_size: float | None
 """.rstrip()
 
 BODY = f"""\

@@ -185,6 +185,16 @@ def setEdgeSpacing(value: str, current: EdgeProps) -> EdgeKeys:
     }
 
 
+def setEdgeJump(name: str) -> EdgeRuleValue:
+    def setter(value: str, current: EdgeProps) -> EdgeKeys:
+        return {
+            'jump_size': float(value),
+            'drawio_style': {'jumpStyle': name, '@pop': ['jumpSize']},
+        }
+
+    return setter
+
+
 node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
@@ -261,6 +271,9 @@ def eval_edge_props(props: EdgeProps) -> EdgeProps:
     if props.spacing[1] is not None:
         drawio_style['targetPerimeterSpacing'] = m * props.spacing[1]
 
+    if props.jump_size is not None:
+        drawio_style['jumpSize'] = m * props.jump_size
+
     if drawio_style:
         drawio_style.update(props.drawio_style)
     else:
@@ -280,6 +293,7 @@ edge = StyleMap[EdgeProps, EdgeKeys](
         label_offset=(0, 0),
         spacing=(None, None),
         spacing_both=None,
+        jump_size=None,
     ),
     eval_fn=eval_edge_props,
 )
@@ -313,6 +327,8 @@ ARROW_TYPES = [
     'ERzeroToMany',
     'doubleBlock',
 ]
+
+JUMP_TYPES = 'none', 'arc', 'gap', 'line', 'sharp'
 
 
 def cstyle(conflict_keys: list[str], **style: int | str) -> BackendStyle:
@@ -350,6 +366,7 @@ edge.update(
         'shape-filled': {'drawio_style': {'shape': 'filledEdge'}},
         'shape-pipe': {'drawio_style': {'shape': 'pipe'}},
         'shape-wire': {'drawio_style': {'shape': 'wire', 'fillColor': 'default', 'dashed': 1}},
+        **{f'jump-{it}': {'drawio_style': {'jumpStyle': it}} for it in JUMP_TYPES},
     }
 )
 
@@ -378,6 +395,7 @@ edge.add_rules(
         rule('dashed', setDashed),
         rule('shadow', setShadow),
         rule('space', setEdgeSpacing),
+        *[rule(f'jump-{it}', setEdgeJump(it)) for it in JUMP_TYPES],
     ]
 )
 

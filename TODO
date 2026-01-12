@@ -1,9 +1,10 @@
 # TODO
 
-* Export all edge UI styles as tags
-  - jumpStyle/jumpSize
-
+* Subgrids
+* Wrap nodes
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams
 
 # Investigate
+#
+* Rework origin to include it into positioning as late as possible

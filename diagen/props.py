@@ -67,6 +67,7 @@ class EdgeProps:
     label_offset: tuple[float, float]
     spacing: tuple[float | None, float | None]
     spacing_both: float | None
+    jump_size: float | None
 
     drawio_style: BackendStyle
 
@@ -78,6 +79,7 @@ class EdgeKeys(TypedDict, total=False):
     label_offset: tuple[float, float]
     spacing: tuple[float | None, float | None]
     spacing_both: float | None
+    jump_size: float | None
 
     classes: ClassList
     drawio_style: BackendStyle | str
