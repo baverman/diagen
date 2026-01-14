@@ -9,8 +9,9 @@ NODE_PROPS = """\
     align: tuple[float | None, float | None]
     items_align: tuple[float, float]
 
-    grid_columns: int | None
-    grid_col: tuple[int, int] | None
+    grid_size: tuple[int | None, int | None]
+    grid_at: tuple[tuple[int, int] | None, tuple[int, int] | None]
+    grid_direction: int
 
     # drawio
     link: str | None

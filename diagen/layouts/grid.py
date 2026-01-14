@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..utils import dtup2
+
 if TYPE_CHECKING:
     from ..nodes import Node
 
@@ -33,28 +35,33 @@ class GridLayout:
         except AttributeError:
             pass
 
-        max_cols = node.props.grid_columns
+        d = node.props.grid_direction
+        o = [1, 0][d]
+
+        max_size = node.props.grid_size[d]
         cells = []
         rows: dict[int, list[Cell]] = {}
         cols: dict[int, list[Cell]] = {}
+        rc = (cols, rows)
         r = c = 0
         for it in node.children:
-            cs, ce = it.props.grid_col if it.props.grid_col else (c + 1, c + 2)
+            at = it.props.grid_at[d]
+            cs, ce = at if at is not None else (c + 1, c + 2)
             if ce <= 0:
-                ce = (max_cols or 0) + 1 + ce
-            ce = max(cs + 1, min(ce, (max_cols or 0) + 1))
+                ce = (max_size or 0) + 1 + ce
+            ce = max(cs + 1, min(ce, (max_size or 0) + 1))
             if cs < (c + 1):
                 r += 1
 
-            cell = Cell((cs - 1, r), (ce - cs, 1), it)
+            cell = Cell(dtup2(d, cs - 1, r), dtup2(d, ce - cs, 1), it)
             cells.append(cell)
-            for cc in range(cell.size[0]):
-                cols.setdefault(cell.pos[0] + cc, []).append(cell)
-            for rr in range(cell.size[1]):
-                rows.setdefault(cell.pos[1] + rr, []).append(cell)
+            for cc in range(cell.size[d]):
+                rc[d].setdefault(cell.pos[d] + cc, []).append(cell)
+            for rr in range(cell.size[o]):
+                rc[o].setdefault(cell.pos[o] + rr, []).append(cell)
 
             c = ce - 1
-            if max_cols is not None and c >= max_cols:
+            if max_size is not None and c >= max_size:
                 c = 0
                 r += 1
 

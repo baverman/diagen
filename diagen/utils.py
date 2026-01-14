@@ -1,17 +1,17 @@
 import re
 from typing import TypeVar
 
-OptFloat = TypeVar('OptFloat', float, float | None)
+T = TypeVar('T')
 
 
-def dtup2(direction: int, v1: float, v2: float) -> tuple[float, float]:
+def dtup2(direction: int, v1: T, v2: T) -> tuple[T, T]:
     if direction == 0:
         return v1, v2
     else:
         return v2, v1
 
 
-def mux2(pos: int, value: float, current: tuple[OptFloat, OptFloat]) -> tuple[OptFloat, OptFloat]:
+def mux2(pos: int, value: T, current: tuple[T, T]) -> tuple[T, T]:
     if pos == 0:
         return value, current[1]
     else:

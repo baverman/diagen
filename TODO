@@ -1,6 +1,7 @@
 # TODO
 
 * Subgrids
+* Remove box layout, keep only grid
 * Wrap nodes
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams

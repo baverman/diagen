@@ -6,7 +6,7 @@ edge_resolve_classes = styles.edge.resolve_classes
 
 
 def nprops(data: NodeKeys) -> NodeProps:
-    return data  # type: ignore[return-value]
+    return styles.node.resolve_props((data,))
 
 
 def test_resolve_rules() -> None:
@@ -38,13 +38,16 @@ def test_resolve_classes() -> None:
 
 
 def test_grid_col_setter() -> None:
-    assert styles.setGridCol('grid_col')('1', nprops({})) == {'grid_col': (1, 2)}
-    assert styles.setGridCol('grid_col')('1:', nprops({})) == {'grid_col': (1, 0)}
-    assert styles.setGridCol('grid_col')('1:-2', nprops({})) == {'grid_col': (1, -2)}
+    def get(value: str) -> tuple[int, int] | None:
+        return styles.setGridAt(0)(value, nprops({'grid_at': (None, None)}))['grid_at'][0]
 
-    assert styles.setGridCol('grid_col')('1/2', nprops({})) == {'grid_col': (1, 3)}
-    assert styles.setGridCol('grid_col')('1/0', nprops({})) == {'grid_col': (1, 1)}
-    assert styles.setGridCol('grid_col')('1/-1', nprops({})) == {'grid_col': (1, 0)}
+    assert get('1') == (1, 2)
+    assert get('1:') == (1, 0)
+    assert get('1:-2') == (1, -2)
+
+    assert get('1/2') == (1, 3)
+    assert get('1/0') == (1, 1)
+    assert get('1/-1') == (1, 0)
 
 
 def test_edge_style() -> None:

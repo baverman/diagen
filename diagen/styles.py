@@ -56,7 +56,7 @@ def eval_node_props(props: NodeProps) -> NodeProps:
     )
 
 
-def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
+def setGridAt(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         if '/' in value:
             h, sep, t = value.partition('/')
@@ -74,7 +74,7 @@ def setGridCol(name: Literal['grid_col']) -> NodeRuleValue:
             else:
                 end = start + 1
 
-        return {name: (start, end)}
+        return {'grid_at': mux2(direction, (start, end), current.grid_at)}
 
     return inner
 
@@ -92,6 +92,17 @@ def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
             v = float(value)
 
         return {name: mux2(pos, v, dyn[name])}
+
+    return inner
+
+
+def setGridSize(direction: int) -> NodeRuleValue:
+    def inner(value: str, current: NodeProps) -> NodeKeys:
+        return {
+            'layout': GridLayout,
+            'grid_direction': direction,
+            'grid_size': mux2(direction, int(value), current.grid_size),
+        }
 
     return inner
 
@@ -209,8 +220,9 @@ node = StyleMap[NodeProps, NodeKeys](
         label_formatter=default_label_formatter,
         items_align=(0, 0),
         align=(None, None),
-        grid_columns=None,
-        grid_col=None,
+        grid_size=(None, None),
+        grid_at=(None, None),
+        grid_direction=0,
     ),
     eval_fn=eval_node_props,
 )
@@ -222,6 +234,8 @@ node.update(
         'virtual': {'virtual': True},
         'non-virtual': {'virtual': False},
         'grid': {'layout': GridLayout},
+        'grid-cols': {'layout': GridLayout, 'grid_direction': 0},
+        'grid-rows': {'layout': GridLayout, 'grid_direction': 1},
         # Dash style
         'dashed': {'drawio_style': {'dashed': 1}},
         'solid': {'drawio_style': {'dashed': 0}},
@@ -243,8 +257,11 @@ node.add_rules(
         rule('gap', setAt('gap', 0, 1)),
         rule('gapx', setAt('gap', 0)),
         rule('gapy', setAt('gap', 1)),
-        rule('grid', lambda value, _: {'layout': GridLayout, 'grid_columns': int(value)}),
-        rule('col', setGridCol('grid_col')),
+        rule('grid-cols', setGridSize(0)),
+        rule('grid-rows', setGridSize(1)),
+        rule('grid', setGridSize(0)),  # deprecate
+        rule('col', setGridAt(0)),
+        rule('row', setGridAt(1)),
         rule('align', setAlign('align', 0)),
         rule('valign', setAlign('align', 1)),
         rule('items-align', setAlign('items_align', 0)),

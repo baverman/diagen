@@ -66,3 +66,20 @@ def test_c4_shapes(render: None) -> None:
         c4.Bus['valign-start']('Bus')
 
         c4.Component['col-1: align-end']('Component')
+
+
+def test_c4_shapes_t(render: None) -> None:
+    with c4.Boundary['gap-8 grid-rows-3 items-align-start items-valign-end']('Boundary'):
+        with stack['row-1: gap-8']:
+            c4.Person('Person')
+            c4.ExtPerson('Ext person')
+
+        c4.System('System')
+        c4.ExtSystem['row-3']('Ext System')
+        c4.Container['row-2']('Container')
+
+        c4.Storage['row-1']('DB')
+        c4.Pod('Pod')
+        c4.Bus['valign-start']('Bus')
+
+        c4.Component['row-1: align-end']('Component')
