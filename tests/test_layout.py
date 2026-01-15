@@ -5,9 +5,8 @@ from diagen.layouts.grid import GridLayout
 from diagen.nodes import Node
 
 grid = diagen.grid.props(scale=1)
+vgrid = diagen.vgrid.props(scale=1)
 node = diagen.node.props(scale=1)
-stack = diagen.stack.props(scale=1)
-vstack = diagen.vstack.props(scale=1)
 
 
 def assert_grid(node: Node, expected: str) -> None:
@@ -27,7 +26,7 @@ def assert_grid(node: Node, expected: str) -> None:
 
 
 def test_hstack() -> None:
-    s = stack['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
+    s = grid['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
     assert s.size[0] == 2 + 2 + 1 + 2
     assert s.size[1] == 5
 
@@ -38,7 +37,7 @@ def test_hstack() -> None:
 
 
 def test_vstack() -> None:
-    s = vstack['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
+    s = vgrid['gap-2 p-1'](n1 := node['w-1 h-1'](), n2 := node['w-2 h-3']())
     assert s.size[1] == 2 + 2 + 1 + 3
     assert s.size[0] == 4
 
@@ -49,7 +48,7 @@ def test_vstack() -> None:
 
 
 def test_stack_items_align() -> None:
-    s = stack['items-align-start'](n1 := node['w-1 h-1'](), n2 := node['w-1 h-3']())
+    s = grid['items-valign-start'](n1 := node['w-1 h-1'](), n2 := node['w-1 h-3']())
 
     s.arrange()
     assert n1.position == (0, 0)
@@ -57,7 +56,7 @@ def test_stack_items_align() -> None:
 
 
 def test_stack_align() -> None:
-    s = stack['items-align-start'](n1 := node['w-1 h-1 align-end'](), n2 := node['w-1 h-3']())
+    s = grid['items-valign-start'](n1 := node['w-1 h-1 valign-end'](), n2 := node['w-1 h-3']())
 
     s.arrange()
     assert n1.position == (0, 2)
@@ -79,9 +78,9 @@ def test_grid() -> None:
 
 
 def test_context_manager() -> None:
-    with stack as s:
+    with grid as s:
         n1 = node()
-        n2 = stack(n3 := node())
+        n2 = grid(n3 := node())
 
     assert s.children == [n1, n2]
     assert n2.children == [n3]

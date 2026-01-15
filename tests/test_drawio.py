@@ -2,7 +2,7 @@ from typing import Iterator
 
 import pytest
 
-from diagen import drawio, stack, vstack
+from diagen import drawio, grid, vgrid
 from diagen.nodes import Node, _children_stack
 from diagen.shapes import c4
 
@@ -29,8 +29,8 @@ def render(
 
 
 def test_showcase(render: None) -> None:
-    with stack['p-12 gap-24']:
-        with vstack['gap-40']:
+    with grid['p-12 gap-24']:
+        with vgrid['gap-40']:
             ext_user = c4.ExtPerson('Customer')
             ext_host = c4.ExtSystem("Customer's\nserver")
 
@@ -53,7 +53,7 @@ def test_showcase(render: None) -> None:
 
 def test_c4_shapes(render: None) -> None:
     with c4.Boundary['dv gap-8 grid-3 items-align-start items-valign-end']('Boundary'):
-        with stack['col-1: gap-8']:
+        with grid['col-1: gap-8']:
             c4.Person('Person')
             c4.ExtPerson('Ext person')
 
@@ -70,7 +70,7 @@ def test_c4_shapes(render: None) -> None:
 
 def test_c4_shapes_t(render: None) -> None:
     with c4.Boundary['gap-8 grid-rows-3 items-align-start items-valign-end']('Boundary'):
-        with stack['row-1: gap-8']:
+        with vgrid['row-1: gap-8']:
             c4.Person('Person')
             c4.ExtPerson('Ext person')
 

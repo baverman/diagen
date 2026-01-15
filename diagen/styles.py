@@ -1,7 +1,6 @@
 from dataclasses import replace
 from typing import Iterable, Literal, TypeVar, overload
 
-from .layouts.box import BoxLayout
 from .layouts.grid import GridLayout
 from .stylemap import (
     BackendStyle,
@@ -226,7 +225,7 @@ def set_edge_jump(name: str) -> EdgeRuleValue:
 node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
-        layout=BoxLayout,
+        layout=GridLayout,
         size=(-1, -1),
         padding=(0, 0, 0, 0),
         gap=(0, 0),
