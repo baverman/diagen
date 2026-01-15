@@ -39,19 +39,23 @@ class GridLayout:
         o = [1, 0][d]
 
         max_size = node.props.grid_size[d]
+        imax_size = 0
         cells = []
         rows: dict[int, list[Cell]] = {}
         cols: dict[int, list[Cell]] = {}
         rc = (cols, rows)
         r = c = 0
         for it in node.children:
+            ms = max_size or imax_size
             at = it.props.grid_at[d]
             cs, ce = at if at is not None else (c + 1, c + 2)
             if ce <= 0:
-                ce = (max_size or 0) + 1 + ce
-            ce = max(cs + 1, min(ce, (max_size or 0) + 1))
+                ce = ms + 1 + ce
+            ce = max(ce, cs + 1)
             if cs < (c + 1):
                 r += 1
+
+            imax_size = max(imax_size, ce - 1)
 
             ato = it.props.grid_at[o]
             rs, re = ato if ato is not None else (r + 1, r + 2)

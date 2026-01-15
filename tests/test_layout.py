@@ -113,8 +113,47 @@ def test_grid_cells() -> None:
         node['col-1']()
     assert_grid(g, '0\n1')
 
+
+def test_grid_implicit_max_size() -> None:
     with grid['grid-cols-3']() as g:
         node()
         node['col-3']()
         node['col-1:']()
     assert_grid(g, '0.1\n222')
+
+    with grid() as g:
+        node()
+        node['col-3']()
+        node['col-1:']()
+    assert_grid(g, '0.1\n222')
+
+
+def test_grid_positions_and_spans() -> None:
+    with grid() as g:
+        node()
+        node['row-3 col-3']()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            0...
+            ....
+            ..12
+        """,
+    )
+
+    with grid() as g:
+        node()
+        node['row-3+2 col-2+2']()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            0...
+            ....
+            .112
+            .11.
+        """,
+    )
