@@ -39,7 +39,7 @@ def test_resolve_classes() -> None:
 
 def test_grid_col_setter() -> None:
     def get(value: str) -> tuple[int, int] | None:
-        return styles.setGridAt(0)(value, nprops({'grid_at': (None, None)}))['grid_at'][0]
+        return styles.set_grid_at(0)(value, nprops({'grid_at': (None, None)}))['grid_at'][0]
 
     assert get('1') == (1, 2)
     assert get('1:') == (1, 0)

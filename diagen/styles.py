@@ -23,7 +23,7 @@ def default_label_formatter(props: NodeProps | EdgeProps, label: list[str]) -> s
     return '\n'.join(label)
 
 
-def setAt(name: Literal['padding', 'size', 'gap'], *pos: int) -> NodeRuleValue:
+def set_at(name: Literal['padding', 'size', 'gap'], *pos: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         dyn: NodeKeys = vars(current)  # type: ignore[assignment]
         v = float(value)
@@ -56,7 +56,7 @@ def eval_node_props(props: NodeProps) -> NodeProps:
     )
 
 
-def setGridAt(direction: int) -> NodeRuleValue:
+def set_grid_at(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         if '+' in value:
             h, sep, t = value.partition('+')
@@ -79,7 +79,7 @@ def setGridAt(direction: int) -> NodeRuleValue:
     return inner
 
 
-def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
+def set_align(name: AlignLiteral, pos: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         dyn: NodeKeys = vars(current)  # type: ignore[assignment]
         if value == 'start':
@@ -96,7 +96,7 @@ def setAlign(name: AlignLiteral, pos: int) -> NodeRuleValue:
     return inner
 
 
-def setGridSize(direction: int) -> NodeRuleValue:
+def set_grid_size(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         return {
             'layout': GridLayout,
@@ -107,14 +107,14 @@ def setGridSize(direction: int) -> NodeRuleValue:
     return inner
 
 
-def setNodeSize(value: str, current: NodeProps) -> NodeKeys:
+def set_node_size(value: str, current: NodeProps) -> NodeKeys:
     h, _, t = value.partition('/')
     if not t:
         t = h
     return {'size': (float(h), float(t))}
 
 
-def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
+def set_edge_label_offset(value: str, current: EdgeProps) -> EdgeKeys:
     c = current.label_offset
     h, _, t = value.partition('/')
 
@@ -130,21 +130,21 @@ def setEdgeLabelOffset(value: str, current: EdgeProps) -> EdgeKeys:
 
 
 @overload
-def setDashed(value: str, current: EdgeProps) -> EdgeKeys: ...
+def set_dashed(value: str, current: EdgeProps) -> EdgeKeys: ...
 
 
 @overload
-def setDashed(value: str, current: NodeProps) -> NodeKeys: ...
+def set_dashed(value: str, current: NodeProps) -> NodeKeys: ...
 
 
-def setDashed(value: str, current: NodeProps | EdgeProps) -> NodeKeys | EdgeKeys:
+def set_dashed(value: str, current: NodeProps | EdgeProps) -> NodeKeys | EdgeKeys:
     h, sep, t = value.partition('-')
     if not sep:
         t = h
     return {'drawio_style': {'dashed': 1, 'dashPattern': f'{h} {t}'}}
 
 
-def setShadow(value: str, current: EdgeProps) -> EdgeKeys:
+def set_shadow(value: str, current: EdgeProps) -> EdgeKeys:
     h, _, t = value.partition('/')
 
     style: BackendStyle = {
@@ -158,28 +158,28 @@ def setShadow(value: str, current: EdgeProps) -> EdgeKeys:
     return {'drawio_style': style}
 
 
-def setEdgeEndFill(prefix: str) -> EdgeRuleValue:
+def set_edge_end_fill(prefix: str) -> EdgeRuleValue:
     def setter(value: str, current: EdgeProps) -> EdgeKeys:
         return {'drawio_style': {prefix + 'Fill': 1, prefix + 'FillColor': value}}
 
     return setter
 
 
-def setEdgeEndSize(prefix: str) -> EdgeRuleValue:
+def set_edge_end_size(prefix: str) -> EdgeRuleValue:
     def setter(value: str, current: EdgeProps) -> EdgeKeys:
         return {'drawio_style': {prefix + 'Size': value}}
 
     return setter
 
 
-def setEdgeArrowShape(prefix: str, name: str) -> EdgeRuleValue:
+def set_edge_arrow_shape(prefix: str, name: str) -> EdgeRuleValue:
     def setter(value: str, current: EdgeProps) -> EdgeKeys:
         return {'drawio_style': {prefix + 'Size': value, prefix + 'Arrow': name}}
 
     return setter
 
 
-def setEdgeEndSpacing(prefix: str, end: int) -> EdgeRuleValue:
+def set_edge_end_spacing(prefix: str, end: int) -> EdgeRuleValue:
     def setter(value: str, current: EdgeProps) -> EdgeKeys:
         return {
             'spacing': mux2(end, float(value), current.spacing),
@@ -189,14 +189,14 @@ def setEdgeEndSpacing(prefix: str, end: int) -> EdgeRuleValue:
     return setter
 
 
-def setEdgeSpacing(value: str, current: EdgeProps) -> EdgeKeys:
+def set_edge_spacing(value: str, current: EdgeProps) -> EdgeKeys:
     return {
         'spacing_both': float(value),
         'drawio_style': {'@pop': ['perimeterSpacing']},
     }
 
 
-def setEdgeJump(name: str) -> EdgeRuleValue:
+def set_edge_jump(name: str) -> EdgeRuleValue:
     def setter(value: str, current: EdgeProps) -> EdgeKeys:
         return {
             'jump_size': float(value),
@@ -243,29 +243,29 @@ node.update(
 
 node.add_rules(
     [
-        rule('p', setAt('padding', 0, 1, 2, 3)),
-        rule('px', setAt('padding', 0, 2)),
-        rule('py', setAt('padding', 1, 3)),
-        rule('pl', setAt('padding', 0)),
-        rule('pr', setAt('padding', 2)),
-        rule('pt', setAt('padding', 1)),
-        rule('pb', setAt('padding', 3)),
-        rule('size', setNodeSize),
-        rule('w', setAt('size', 0)),
-        rule('h', setAt('size', 1)),
-        rule('gap', setAt('gap', 0, 1)),
-        rule('gapx', setAt('gap', 0)),
-        rule('gapy', setAt('gap', 1)),
-        rule('grid-cols', setGridSize(0)),
-        rule('grid-rows', setGridSize(1)),
-        rule('grid', setGridSize(0)),  # deprecate
-        rule('col', setGridAt(0)),
-        rule('row', setGridAt(1)),
-        rule('align', setAlign('align', 0)),
-        rule('valign', setAlign('align', 1)),
-        rule('items-align', setAlign('items_align', 0)),
-        rule('items-valign', setAlign('items_align', 1)),
-        rule('dashed', setDashed),
+        rule('p', set_at('padding', 0, 1, 2, 3)),
+        rule('px', set_at('padding', 0, 2)),
+        rule('py', set_at('padding', 1, 3)),
+        rule('pl', set_at('padding', 0)),
+        rule('pr', set_at('padding', 2)),
+        rule('pt', set_at('padding', 1)),
+        rule('pb', set_at('padding', 3)),
+        rule('size', set_node_size),
+        rule('w', set_at('size', 0)),
+        rule('h', set_at('size', 1)),
+        rule('gap', set_at('gap', 0, 1)),
+        rule('gapx', set_at('gap', 0)),
+        rule('gapy', set_at('gap', 1)),
+        rule('grid-cols', set_grid_size(0)),
+        rule('grid-rows', set_grid_size(1)),
+        rule('grid', set_grid_size(0)),  # deprecate
+        rule('col', set_grid_at(0)),
+        rule('row', set_grid_at(1)),
+        rule('align', set_align('align', 0)),
+        rule('valign', set_align('align', 1)),
+        rule('items-align', set_align('items_align', 0)),
+        rule('items-valign', set_align('items_align', 1)),
+        rule('dashed', set_dashed),
     ]
 )
 
@@ -388,7 +388,7 @@ edge.update(
 
 edge.add_rules(
     [
-        rule('label', setEdgeLabelOffset),
+        rule('label', set_edge_label_offset),
         rule(
             'rounded',
             lambda value, current: {
@@ -408,15 +408,15 @@ edge.add_rules(
         ),
         rule('w', lambda value, current: {'drawio_style': {'strokeWidth': float(value)}}),
         rule('color', lambda value, current: {'drawio_style': {'strokeColor': value}}),
-        rule('dashed', setDashed),
-        rule('shadow', setShadow),
-        rule('space', setEdgeSpacing),
-        *[rule(f'jump-{it}', setEdgeJump(it)) for it in JUMP_TYPES],
+        rule('dashed', set_dashed),
+        rule('shadow', set_shadow),
+        rule('space', set_edge_spacing),
+        *[rule(f'jump-{it}', set_edge_jump(it)) for it in JUMP_TYPES],
     ]
 )
 
 
-def addArrowStyles(arrows: Iterable[str]) -> None:
+def add_arrow_styles(arrows: Iterable[str]) -> None:
     classes: dict[str, EdgeKeys] = {}
     rules = []
 
@@ -424,18 +424,18 @@ def addArrowStyles(arrows: Iterable[str]) -> None:
         for name in arrows:
             kc_name = kebab_case(name)
             classes[class_prefix + kc_name] = {'drawio_style': {style_prefix + 'Arrow': name}}
-            rules.append(rule(class_prefix + kc_name, setEdgeArrowShape(style_prefix, name)))
+            rules.append(rule(class_prefix + kc_name, set_edge_arrow_shape(style_prefix, name)))
 
         classes[class_prefix + 'fill'] = {'drawio_style': {style_prefix + 'Fill': 1}}
         classes[class_prefix + 'fill-none'] = {'drawio_style': {style_prefix + 'Fill': 0}}
-        rules.append(rule(class_prefix + 'fill', setEdgeEndFill(style_prefix)))
-        rules.append(rule(class_prefix + 'size', setEdgeEndSize(style_prefix)))
+        rules.append(rule(class_prefix + 'fill', set_edge_end_fill(style_prefix)))
+        rules.append(rule(class_prefix + 'size', set_edge_end_size(style_prefix)))
 
     for class_prefix, style_prefix, end in ('start-', 'source', 0), ('end-', 'target', 1):
-        rules.append(rule(class_prefix + 'space', setEdgeEndSpacing(style_prefix, end)))
+        rules.append(rule(class_prefix + 'space', set_edge_end_spacing(style_prefix, end)))
 
     edge.update(classes)
     edge.add_rules(rules)
 
 
-addArrowStyles(ARROW_TYPES)
+add_arrow_styles(ARROW_TYPES)
