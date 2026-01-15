@@ -41,16 +41,16 @@ def test_resolve_classes() -> None:
 
 def test_grid_col_setter() -> None:
     def get(value: str) -> Span:
-        return styles.set_grid_at(0)(value, nprops())['grid_cell'][0]
+        return styles.set_grid_at_dir(0)(value, nprops())['grid_cell'][0]
 
-    assert get('1') == Span(1)
-    assert get('1:3') == Span(1, 3, False)
-    assert get('1:') == Span(1, 0, False)
-    assert get('1:-2') == Span(1, -2, False)
+    assert get('1') == Span(1, rel_start=False)
+    assert get('1:3') == Span(1, 3, rel_end=False, rel_start=False)
+    assert get('1:') == Span(1, 0, rel_end=False, rel_start=False)
+    assert get('1:-2') == Span(1, -2, rel_end=False, rel_start=False)
 
-    assert get('1+2') == Span(1, 2)
-    assert get('1+0') == Span(1, 0)
-    assert get('1+-1') == Span(1, -1)
+    assert get('1+2') == Span(1, 2, rel_start=False)
+    assert get('1+0') == Span(1, 0, rel_start=False)
+    assert get('1+-1') == Span(1, -1, rel_start=False)
 
 
 def test_edge_style() -> None:

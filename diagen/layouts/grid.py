@@ -17,12 +17,11 @@ class Cell:
 
 def next_span(current: int, span: Span, max_size: int | None = None) -> tuple[int, int]:
     start = span.start
+    if span.rel_start:
+        start += current
+
     end = span.end
-
-    if start is None:
-        start = current
-
-    if span.relative:
+    if span.rel_end:
         end += start
     elif max_size and end <= 0:
         end += max_size + 1

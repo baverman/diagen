@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Protocol, TypedDict
 
 if TYPE_CHECKING:
@@ -17,9 +17,10 @@ class Layout(Protocol):
 
 @dataclass(frozen=True)
 class Span:
-    start: int | None = None
+    start: int = 0
     end: int = 1
-    relative: bool = True
+    rel_start: bool = field(default=True, kw_only=True)
+    rel_end: bool = field(default=True, kw_only=True)
 
 
 @dataclass(frozen=True, kw_only=True)

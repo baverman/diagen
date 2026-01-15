@@ -56,46 +56,69 @@ def eval_node_props(props: NodeProps) -> NodeProps:
     )
 
 
-def parse_grid_span(value: str, current: Span) -> Span:
+def parse_grid_range(value: str, current: Span) -> Span:
     if '+' in value:
         h, sep, t = value.partition('+')
         end = int(t)
         if h:
-            return Span(int(h), end, True)
+            return Span(int(h), end, rel_start=False, rel_end=True)
         else:
-            return replace(current, end=end, relative=True)
+            return replace(current, end=end, rel_end=True)
     else:
         h, sep, t = value.partition(':')
         result = current
         if h:
-            result = replace(result, start=int(h))
+            result = replace(result, start=int(h), rel_start=False)
 
         if sep:
-            result = replace(result, end=int(t) if t else 0, relative=False)
+            result = replace(result, end=int(t) if t else 0, rel_end=False)
 
         return result
 
 
-def set_grid_at(direction: int) -> NodeRuleValue:
+def set_grid_at_dir(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         return {
             'grid_cell': mux2(
-                direction, parse_grid_span(value, current.grid_cell[direction]), current.grid_cell
+                direction, parse_grid_range(value, current.grid_cell[direction]), current.grid_cell
             )
         }
 
     return inner
 
 
-def set_grid_cell(value: str, current: NodeProps) -> NodeKeys:
+def parse_grid_at(value: str, current: Span) -> Span:
+    if not value:
+        return current
+
+    return replace(current, start=int(value), rel_start=value[0] in '+-')
+
+
+def set_grid_at(value: str, current: NodeProps) -> NodeKeys:
     h, _, t = value.partition('/')
     g = current.grid_cell
-    return {
-        'grid_cell': (
-            parse_grid_span(h, g[0]) if h else g[0],
-            parse_grid_span(t, g[1]) if t else g[1],
-        )
-    }
+    return {'grid_cell': (parse_grid_at(h, g[0]), parse_grid_at(t, g[1]))}
+
+
+def parse_grid_span(value: str, current: Span) -> Span:
+    if not value:
+        return current
+
+    if value[0] == ':':
+        relative = False
+        v = value[1:]
+        end = int(v) if v else 0
+    else:
+        end = int(value)
+        relative = True
+
+    return replace(current, end=end, rel_end=relative)
+
+
+def set_grid_span(value: str, current: NodeProps) -> NodeKeys:
+    h, _, t = value.partition('/')
+    g = current.grid_cell
+    return {'grid_cell': (parse_grid_span(h, g[0]), parse_grid_span(t, g[1]))}
 
 
 def set_align(name: AlignLiteral, pos: int) -> NodeRuleValue:
@@ -278,9 +301,10 @@ node.add_rules(
         rule('grid-cols', set_grid_size(0)),
         rule('grid-rows', set_grid_size(1)),
         rule('grid', set_grid_size(0)),  # deprecate
-        rule('col', set_grid_at(0)),
-        rule('row', set_grid_at(1)),
-        rule('cell', set_grid_cell),
+        rule('col', set_grid_at_dir(0)),
+        rule('row', set_grid_at_dir(1)),
+        rule('at', set_grid_at),
+        rule('span', set_grid_span),
         rule('align', set_align('align', 0)),
         rule('valign', set_align('align', 1)),
         rule('items-align', set_align('items_align', 0)),

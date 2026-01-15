@@ -159,7 +159,7 @@ def test_grid_positions_and_spans() -> None:
 
     with grid() as g:
         node()
-        node['cell-2+2/3+2']()
+        node['at-2/+2 span-2/:5']()
         node()
 
     assert_grid(
