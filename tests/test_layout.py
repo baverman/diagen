@@ -157,3 +157,26 @@ def test_grid_positions_and_spans() -> None:
             .11.
         """,
     )
+
+
+def test_grid_row_wrap() -> None:
+    with grid['grid-cols-3'] as g:
+        node['col-3']()
+        node()
+
+    assert_grid(g, '..0\n1..')
+
+
+def test_implicit_spans() -> None:
+    with grid as g:
+        node['row-2']()
+        node['col-+3 row-:4']()
+
+    assert_grid(
+        g,
+        """\
+            ....
+            0111
+            .111
+        """,
+    )

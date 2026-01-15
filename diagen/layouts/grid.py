@@ -14,6 +14,21 @@ class Cell:
     node: 'Node'
 
 
+def next_span(
+    current: int, span: tuple[int, int] | None, max_size: int | None = None
+) -> tuple[int, int]:
+    start, end = span if span is not None else (current, current + 1)
+    if start <= 0:
+        old = start
+        start = current
+        if old == 0 and end > 0:  # rebase relative end to a new start
+            end += start
+    if max_size and end <= 0:
+        end = max_size + 1 + end
+    end = max(end, start + 1)
+    return start, end
+
+
 class GridLayout:
     @staticmethod
     def size(node: 'Node', axis: int) -> float:
@@ -44,24 +59,18 @@ class GridLayout:
         rows: dict[int, list[Cell]] = {}
         cols: dict[int, list[Cell]] = {}
         rc = (cols, rows)
-        r = c = 0
+        r = c = 1  # rows and cols are 1-base indexed
         for it in node.children:
-            ms = max_size or imax_size
-            at = it.props.grid_at[d]
-            cs, ce = at if at is not None else (c + 1, c + 2)
-            if ce <= 0:
-                ce = ms + 1 + ce
-            ce = max(ce, cs + 1)
-            if cs < (c + 1):
-                r += 1
-
+            cs, ce = next_span(c, it.props.grid_at[d], max_size or imax_size)
             imax_size = max(imax_size, ce - 1)
+            if cs < c:
+                r += 1
+            c = ce
 
-            ato = it.props.grid_at[o]
-            rs, re = ato if ato is not None else (r + 1, r + 2)
-            re = max(re, rs + 1)
-            r = rs - 1
+            rs, re = next_span(r, it.props.grid_at[o])
+            r = rs
 
+            # for cells we convert 1-base into 0-base as more convenient to handle
             cell = Cell(dtup2(d, cs - 1, rs - 1), dtup2(d, ce - cs, re - rs), it)
             cells.append(cell)
             for cc in range(cell.size[d]):
@@ -69,9 +78,8 @@ class GridLayout:
             for rr in range(cell.size[o]):
                 rc[o].setdefault(cell.pos[o] + rr, []).append(cell)
 
-            c = ce - 1
-            if max_size is not None and c >= max_size:
-                c = 0
+            if max_size is not None and c > max_size:
+                c = 1
                 r += 1
 
         col_count = max(it.pos[0] + it.size[0] for it in cells)

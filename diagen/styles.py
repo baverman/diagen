@@ -60,12 +60,12 @@ def setGridAt(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         if '+' in value:
             h, sep, t = value.partition('+')
-            start = int(h)
+            start = int(h) if h else 0  # 0 use current value with relative end
             end = start + int(t)
         else:
             h, sep, t = value.partition(':')
 
-            start = int(h)
+            start = int(h) if h else -1  # -1 use current value with absolute end
             if sep:
                 if t:
                     end = int(t)
