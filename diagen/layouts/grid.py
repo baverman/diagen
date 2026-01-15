@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..props import Span
 from ..utils import dtup2
 
 if TYPE_CHECKING:
@@ -14,17 +15,18 @@ class Cell:
     node: 'Node'
 
 
-def next_span(
-    current: int, span: tuple[int, int] | None, max_size: int | None = None
-) -> tuple[int, int]:
-    start, end = span if span is not None else (current, current + 1)
-    if start <= 0:
-        old = start
+def next_span(current: int, span: Span, max_size: int | None = None) -> tuple[int, int]:
+    start = span.start
+    end = span.end
+
+    if start is None:
         start = current
-        if old == 0 and end > 0:  # rebase relative end to a new start
-            end += start
-    if max_size and end <= 0:
-        end = max_size + 1 + end
+
+    if span.relative:
+        end += start
+    elif max_size and end <= 0:
+        end += max_size + 1
+
     end = max(end, start + 1)
     return start, end
 
@@ -61,13 +63,13 @@ class GridLayout:
         rc = (cols, rows)
         r = c = 1  # rows and cols are 1-base indexed
         for it in node.children:
-            cs, ce = next_span(c, it.props.grid_at[d], max_size or imax_size)
+            cs, ce = next_span(c, it.props.grid_cell[d], max_size or imax_size)
             imax_size = max(imax_size, ce - 1)
             if cs < c:
                 r += 1
             c = ce
 
-            rs, re = next_span(r, it.props.grid_at[o])
+            rs, re = next_span(r, it.props.grid_cell[o])
             r = rs
 
             # for cells we convert 1-base into 0-base as more convenient to handle

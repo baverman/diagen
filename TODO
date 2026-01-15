@@ -1,6 +1,10 @@
 # TODO
 
-* Subgrids
+* Add span-[col-spec][/row-spec] where spec is {N|:M|:-L|:} where N is relative,
+  M is absolute, L relative from end, : all width. It could be useful and more readeable
+  to use `cell-1/2 span-2/2` instead of `cell-1+2/2+2`. Maybe it's a good idea to
+  remove later option and rename `cell` into `at`.
+* Subgrids. For actual span it could use node span defined by props.grid_at.
 * Wrap nodes
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams

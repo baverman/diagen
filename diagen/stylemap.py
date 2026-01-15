@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, replace
 from typing import Callable, Generic, Iterable, Mapping, TypeVar
 
-from .props import BackendStyle, ClassList, EdgeKeys, EdgeProps, NodeKeys, NodeProps
+from .props import BackendStyle, ClassList, EdgeKeys, EdgeProps, NodeKeys, NodeProps, Span
 
 __all__ = [
     'NodeProps',
@@ -13,6 +13,7 @@ __all__ = [
     'ClassList',
     'KeysT',
     'PropsT',
+    'Span',
 ]
 
 

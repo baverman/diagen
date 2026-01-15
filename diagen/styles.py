@@ -10,6 +10,7 @@ from .stylemap import (
     NodeKeys,
     NodeProps,
     NodeRuleValue,
+    Span,
     StyleMap,
     rule,
 )
@@ -55,42 +56,44 @@ def eval_node_props(props: NodeProps) -> NodeProps:
     )
 
 
-def parse_grid_span(value: str) -> tuple[int, int]:
+def parse_grid_span(value: str, current: Span) -> Span:
     if '+' in value:
         h, sep, t = value.partition('+')
-        start = int(h) if h else 0  # 0 use current value with relative end
-        end = start + int(t)
+        end = int(t)
+        if h:
+            return Span(int(h), end, True)
+        else:
+            return replace(current, end=end, relative=True)
     else:
         h, sep, t = value.partition(':')
+        result = current
+        if h:
+            result = replace(result, start=int(h))
 
-        start = int(h) if h else -1  # -1 use current value with absolute end
         if sep:
-            if t:
-                end = int(t)
-            else:
-                end = 0
-        else:
-            if h:
-                end = start + 1
-            else:
-                start, end = 0, 1
+            result = replace(result, end=int(t) if t else 0, relative=False)
 
-    return start, end
+        return result
 
 
 def set_grid_at(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
-        return {'grid_at': mux2(direction, parse_grid_span(value), current.grid_at)}
+        return {
+            'grid_cell': mux2(
+                direction, parse_grid_span(value, current.grid_cell[direction]), current.grid_cell
+            )
+        }
 
     return inner
 
 
 def set_grid_cell(value: str, current: NodeProps) -> NodeKeys:
     h, _, t = value.partition('/')
+    g = current.grid_cell
     return {
-        'grid_at': (
-            parse_grid_span(h) if h else None,
-            parse_grid_span(t) if t else None,
+        'grid_cell': (
+            parse_grid_span(h, g[0]) if h else g[0],
+            parse_grid_span(t, g[1]) if t else g[1],
         )
     }
 
@@ -237,7 +240,7 @@ node = StyleMap[NodeProps, NodeKeys](
         items_align=(0, 0),
         align=(None, None),
         grid_size=(None, None),
-        grid_at=(None, None),
+        grid_cell=(Span(), Span()),
     ),
     eval_fn=eval_node_props,
 )

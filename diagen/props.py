@@ -15,6 +15,13 @@ class Layout(Protocol):
     def arrange(self, node: 'Node') -> None: ...
 
 
+@dataclass(frozen=True)
+class Span:
+    start: int | None = None
+    end: int = 1
+    relative: bool = True
+
+
 @dataclass(frozen=True, kw_only=True)
 class NodeProps:
     direction: int
@@ -28,7 +35,7 @@ class NodeProps:
     items_align: tuple[float, float]
 
     grid_size: tuple[int | None, int | None]
-    grid_at: tuple[tuple[int, int] | None, tuple[int, int] | None]
+    grid_cell: tuple[Span, Span]
 
     # drawio
     link: str | None
@@ -49,7 +56,7 @@ class NodeKeys(TypedDict, total=False):
     items_align: tuple[float, float]
 
     grid_size: tuple[int | None, int | None]
-    grid_at: tuple[tuple[int, int] | None, tuple[int, int] | None]
+    grid_cell: tuple[Span, Span]
 
     # drawio
     link: str | None

@@ -1,12 +1,14 @@
+from typing import Unpack
+
 from diagen import styles
-from diagen.stylemap import NodeKeys, NodeProps
+from diagen.stylemap import NodeKeys, NodeProps, Span
 
 resolve_classes = styles.node.resolve_classes
 edge_resolve_classes = styles.edge.resolve_classes
 
 
-def nprops(data: NodeKeys) -> NodeProps:
-    return styles.node.resolve_props((data,))
+def nprops(**props: Unpack[NodeKeys]) -> NodeProps:
+    return styles.node.resolve_props((props,))
 
 
 def test_resolve_rules() -> None:
@@ -38,16 +40,17 @@ def test_resolve_classes() -> None:
 
 
 def test_grid_col_setter() -> None:
-    def get(value: str) -> tuple[int, int] | None:
-        return styles.set_grid_at(0)(value, nprops({'grid_at': (None, None)}))['grid_at'][0]
+    def get(value: str) -> Span:
+        return styles.set_grid_at(0)(value, nprops())['grid_cell'][0]
 
-    assert get('1') == (1, 2)
-    assert get('1:') == (1, 0)
-    assert get('1:-2') == (1, -2)
+    assert get('1') == Span(1)
+    assert get('1:3') == Span(1, 3, False)
+    assert get('1:') == Span(1, 0, False)
+    assert get('1:-2') == Span(1, -2, False)
 
-    assert get('1+2') == (1, 3)
-    assert get('1+0') == (1, 1)
-    assert get('1+-1') == (1, 0)
+    assert get('1+2') == Span(1, 2)
+    assert get('1+0') == Span(1, 0)
+    assert get('1+-1') == Span(1, -1)
 
 
 def test_edge_style() -> None:
