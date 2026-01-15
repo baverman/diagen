@@ -58,8 +58,8 @@ def eval_node_props(props: NodeProps) -> NodeProps:
 
 def setGridAt(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
-        if '/' in value:
-            h, sep, t = value.partition('/')
+        if '+' in value:
+            h, sep, t = value.partition('+')
             start = int(h)
             end = start + int(t)
         else:
@@ -100,7 +100,7 @@ def setGridSize(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
         return {
             'layout': GridLayout,
-            'grid_direction': direction,
+            'direction': direction,
             'grid_size': mux2(direction, int(value), current.grid_size),
         }
 
@@ -222,7 +222,6 @@ node = StyleMap[NodeProps, NodeKeys](
         align=(None, None),
         grid_size=(None, None),
         grid_at=(None, None),
-        grid_direction=0,
     ),
     eval_fn=eval_node_props,
 )
@@ -234,8 +233,8 @@ node.update(
         'virtual': {'virtual': True},
         'non-virtual': {'virtual': False},
         'grid': {'layout': GridLayout},
-        'grid-cols': {'layout': GridLayout, 'grid_direction': 0},
-        'grid-rows': {'layout': GridLayout, 'grid_direction': 1},
+        'grid-cols': {'layout': GridLayout, 'direction': 0},
+        'grid-rows': {'layout': GridLayout, 'direction': 1},
         # Dash style
         'dashed': {'drawio_style': {'dashed': 1}},
         'solid': {'drawio_style': {'dashed': 0}},

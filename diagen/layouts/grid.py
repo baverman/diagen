@@ -35,7 +35,7 @@ class GridLayout:
         except AttributeError:
             pass
 
-        d = node.props.grid_direction
+        d = node.props.direction
         o = [1, 0][d]
 
         max_size = node.props.grid_size[d]
@@ -53,7 +53,12 @@ class GridLayout:
             if cs < (c + 1):
                 r += 1
 
-            cell = Cell(dtup2(d, cs - 1, r), dtup2(d, ce - cs, 1), it)
+            ato = it.props.grid_at[o]
+            rs, re = ato if ato is not None else (r + 1, r + 2)
+            re = max(re, rs + 1)
+            r = rs - 1
+
+            cell = Cell(dtup2(d, cs - 1, rs - 1), dtup2(d, ce - cs, re - rs), it)
             cells.append(cell)
             for cc in range(cell.size[d]):
                 rc[d].setdefault(cell.pos[d] + cc, []).append(cell)

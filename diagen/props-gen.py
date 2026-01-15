@@ -11,7 +11,6 @@ NODE_PROPS = """\
 
     grid_size: tuple[int | None, int | None]
     grid_at: tuple[tuple[int, int] | None, tuple[int, int] | None]
-    grid_direction: int
 
     # drawio
     link: str | None

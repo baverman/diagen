@@ -45,9 +45,9 @@ def test_grid_col_setter() -> None:
     assert get('1:') == (1, 0)
     assert get('1:-2') == (1, -2)
 
-    assert get('1/2') == (1, 3)
-    assert get('1/0') == (1, 1)
-    assert get('1/-1') == (1, 0)
+    assert get('1+2') == (1, 3)
+    assert get('1+0') == (1, 1)
+    assert get('1+-1') == (1, 0)
 
 
 def test_edge_style() -> None:
