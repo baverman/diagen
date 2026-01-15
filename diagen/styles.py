@@ -56,27 +56,44 @@ def eval_node_props(props: NodeProps) -> NodeProps:
     )
 
 
+def parse_grid_span(value: str) -> tuple[int, int]:
+    if '+' in value:
+        h, sep, t = value.partition('+')
+        start = int(h) if h else 0  # 0 use current value with relative end
+        end = start + int(t)
+    else:
+        h, sep, t = value.partition(':')
+
+        start = int(h) if h else -1  # -1 use current value with absolute end
+        if sep:
+            if t:
+                end = int(t)
+            else:
+                end = 0
+        else:
+            if h:
+                end = start + 1
+            else:
+                start, end = 0, 1
+
+    return start, end
+
+
 def set_grid_at(direction: int) -> NodeRuleValue:
     def inner(value: str, current: NodeProps) -> NodeKeys:
-        if '+' in value:
-            h, sep, t = value.partition('+')
-            start = int(h) if h else 0  # 0 use current value with relative end
-            end = start + int(t)
-        else:
-            h, sep, t = value.partition(':')
-
-            start = int(h) if h else -1  # -1 use current value with absolute end
-            if sep:
-                if t:
-                    end = int(t)
-                else:
-                    end = 0
-            else:
-                end = start + 1
-
-        return {'grid_at': mux2(direction, (start, end), current.grid_at)}
+        return {'grid_at': mux2(direction, parse_grid_span(value), current.grid_at)}
 
     return inner
+
+
+def set_grid_cell(value: str, current: NodeProps) -> NodeKeys:
+    h, _, t = value.partition('/')
+    return {
+        'grid_at': (
+            parse_grid_span(h) if h else None,
+            parse_grid_span(t) if t else None,
+        )
+    }
 
 
 def set_align(name: AlignLiteral, pos: int) -> NodeRuleValue:
@@ -261,6 +278,7 @@ node.add_rules(
         rule('grid', set_grid_size(0)),  # deprecate
         rule('col', set_grid_at(0)),
         rule('row', set_grid_at(1)),
+        rule('cell', set_grid_cell),
         rule('align', set_align('align', 0)),
         rule('valign', set_align('align', 1)),
         rule('items-align', set_align('items_align', 0)),

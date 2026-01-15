@@ -1,8 +1,7 @@
 # TODO
 
-* cell- class
-* Subgrids
 * Remove box layout, keep only grid
+* Subgrids
 * Wrap nodes
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams
