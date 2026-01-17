@@ -46,6 +46,10 @@ class Node:
             _children_stack[-1].append(self)
 
     @property
+    def parent_id(self) -> str:
+        return self.parent.id if self.parent else '__root__'
+
+    @property
     def origin(self) -> tuple[float, float]:
         if self.props.virtual:
             return self.position

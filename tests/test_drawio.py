@@ -83,3 +83,14 @@ def test_c4_shapes_t(render: None) -> None:
         c4.Bus['valign-start']('Bus')
 
         c4.Component['row-1: align-end']('Component')
+
+
+def test_subgrids(render: None) -> None:
+    with grid['gap-8']:
+        c4.Component('(1, 1)')
+        c4.Component('(2, 1)')
+        c4.Component('(3, 1)')
+        with c4.Boundary['subgrid at-2/2 gap-8']:
+            c4.Component('(2, 2)')
+            c4.Component['at-2/2']('(3, 3)')
+        c4.Component('(4, 2)')

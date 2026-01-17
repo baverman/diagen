@@ -33,7 +33,7 @@ def make_geom(node: Node) -> element:
 def node_element(node: Node) -> element:
     attrs = {
         'id': node.id,
-        'parent': node.parent and node.parent.id or '__root__',
+        'parent': node.parent_id,
         'vertex': '1',
         'style': style_to_str(node.props.drawio_style),
     }
@@ -85,7 +85,7 @@ def edge_element(edge: Edge) -> list[element]:
     attrs = {
         'edge': '1',
         'id': edge.id,
-        'parent': edge.source.parent and edge.source.parent.id or '__root__',
+        'parent': edge.source.node_ref.parent_id,
         'source': edge.source.node_ref.id,
         'target': edge.target.node_ref.id,
     }

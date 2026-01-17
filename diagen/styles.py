@@ -262,6 +262,7 @@ node = StyleMap[NodeProps, NodeKeys](
         label_formatter=default_label_formatter,
         items_align=(0, 0),
         align=(None, None),
+        subgrid=False,
         grid_size=(None, None),
         grid_cell=(Span(), Span()),
     ),
@@ -275,6 +276,7 @@ node.update(
         'virtual': {'virtual': True},
         'non-virtual': {'virtual': False},
         'grid': {'layout': GridLayout},
+        'subgrid': {'subgrid': True},
         'grid-cols': {'layout': GridLayout, 'direction': 0},
         'grid-rows': {'layout': GridLayout, 'direction': 1},
         # Dash style

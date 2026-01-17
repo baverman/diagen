@@ -1,10 +1,9 @@
 # TODO
 
-* Subgrids. For actual span it could use node span defined by props.grid_cell.
-* Wrap nodes
+* Nested subgrids.
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams
 
 # Investigate
-#
 * Rework origin to include it into positioning as late as possible
+* Wrap nodes

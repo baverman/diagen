@@ -9,6 +9,7 @@ NODE_PROPS = """\
     align: tuple[float | None, float | None]
     items_align: tuple[float, float]
 
+    subgrid: bool
     grid_size: tuple[int | None, int | None]
     grid_cell: tuple[Span, Span]
 

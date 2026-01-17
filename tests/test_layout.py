@@ -194,3 +194,19 @@ def test_implicit_spans() -> None:
             .111
         """,
     )
+
+
+def test_subgrid() -> None:
+    with grid as g:
+        with grid['subgrid at-2/2']:
+            node['at-2/2']()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            ....
+            ...1
+            ..0.
+        """,
+    )
