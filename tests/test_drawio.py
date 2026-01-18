@@ -90,7 +90,9 @@ def test_subgrids(render: None) -> None:
         c4.Component('(1, 1)')
         c4.Component('(2, 1)')
         c4.Component('(3, 1)')
-        with c4.Boundary['subgrid at-2/2 gap-8']:
+        with c4.Boundary['subgrid at-2/2 gap-8']('B1'):
             c4.Component('(2, 2)')
-            c4.Component['at-2/2']('(3, 3)')
+            with c4.Boundary['subgrid at-2/2 p-2 gap-8']('B2'):
+                c4.Component('(3, 3)')
+                c4.Component['at-2/2']('(4, 4)')
         c4.Component('(4, 2)')

@@ -84,14 +84,14 @@ class Node:
         if not self.children:
             return
 
+        parent = self.parent if self.props.virtual else self
         self.props.layout.arrange(self)
         for it in self.children:
+            it.parent = parent
             it.arrange()
 
     def walk(self) -> Iterable['Node']:
-        parent = self.parent if self.props.virtual else self
         for it in self.children:
-            it.parent = parent
             if not it.props.virtual:
                 yield it
             yield from it.walk()
@@ -100,7 +100,7 @@ class Node:
         return self.props.label_formatter(self.props, self.label)
 
     def __repr__(self) -> str:
-        return f'Node(size={self.size})'
+        return f'Node#{id(self):X}(size={self.props.size})'
 
     @property
     def l(self) -> 'Port':

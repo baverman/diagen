@@ -128,7 +128,6 @@ def edge_element(edge: Edge) -> list[element]:
 
 
 def make_model(node: Node) -> element:
-    node.arrange()
     root_node = base_node(node)
     root_node.id = '__root__'
     root_node.position = (0, 0)
@@ -146,6 +145,7 @@ def make_model(node: Node) -> element:
 
     idconter = count()
     edges = set()
+    root_node.arrange()
     for it in root_node.walk():
         edges.update(it.edges)
         if not it.id:

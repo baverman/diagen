@@ -11,14 +11,14 @@ node = diagen.node.props(scale=1)
 
 def assert_grid(node: Node, expected: str) -> None:
     layout: GridLayout = node.props.layout  # type: ignore[assignment]
-    cells = layout.cells(node)[0]
+    cells = layout.cells(node).cells
 
-    col_count = max(it.pos[0] + it.size[0] for it in cells)
-    row_count = max(it.pos[1] + it.size[1] for it in cells)
+    col_count = max(it.end[0] for it in cells)
+    row_count = max(it.end[1] for it in cells)
     rc = [['.'] * col_count for _ in range(row_count)]
     for idx, it in enumerate(cells):
-        for i in range(it.pos[1], it.pos[1] + it.size[1]):
-            for j in range(it.pos[0], it.pos[0] + it.size[0]):
+        for i in range(it.start[1], it.end[1]):
+            for j in range(it.start[0], it.end[0]):
                 rc[i][j] = str(idx)
 
     result = '\n'.join(''.join(it) for it in rc)
@@ -208,5 +208,23 @@ def test_subgrid() -> None:
             ....
             ...1
             ..0.
+        """,
+    )
+
+
+def test_nested_subgrid() -> None:
+    with grid as g:
+        with grid['subgrid at-2/2']:
+            with grid['subgrid at-+1/+1']:
+                node['at-2/2']()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            .....
+            ....1
+            .....
+            ...0.
         """,
     )

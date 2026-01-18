@@ -1,5 +1,5 @@
-from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional, overload
 
 from ..props import Span
 from ..utils import dtup2
@@ -10,15 +10,38 @@ if TYPE_CHECKING:
 
 @dataclass
 class Cell:
-    pos: tuple[int, int]
-    size: tuple[int, int]
+    # 0-base indexes
+    start: tuple[int, int]
+    end: tuple[int, int]
     node: 'Node'
+
+    @property
+    def size(self) -> tuple[int, int]:
+        s = self.start
+        e = self.end
+        return e[0] - s[0], e[1] - s[1]
 
 
 @dataclass
 class SubGrid:
+    parent: 'Node'
     direction: int
     max_size: int | None
+    origin: tuple[int, int]
+    rc: tuple[dict[int, list[Cell]], dict[int, list[Cell]]]
+
+
+@dataclass
+class GridCells:
+    cells: list[Cell]
+    dimensions: tuple[list[float], list[float]]
+
+
+@dataclass
+class SubGridCells:
+    parent: 'Node'
+    cell: Cell
+    cells: list[Cell]
 
 
 def next_span(current: int, span: Span, max_size: int | None = None) -> tuple[int, int]:
@@ -36,31 +59,46 @@ def next_span(current: int, span: Span, max_size: int | None = None) -> tuple[in
     return start, end
 
 
-CellsResult = tuple[list[Cell], tuple[list[float], list[float]]]
+def subgrid_cells(node: 'Node') -> SubGridCells | None:
+    return getattr(node, '_subgrid_cells', None)
+
+
+def nearest_parent(node: 'Node') -> Optional['Node']:
+    parent = node.parent
+    if not parent:
+        return None
+    if parent.props.virtual:
+        return nearest_parent(parent)
+    return parent
 
 
 class GridLayout:
     @staticmethod
     def size(node: 'Node', axis: int) -> float:
-        if node.props.subgrid:
-            parent: Node = node._parent_grid  # type: ignore[attr-defined]
-            cell: Cell = node._grid_subgrid_cell  # type: ignore[attr-defined]
-            csize: tuple[list[float], list[float]]
-            _, csize = parent._grid_cells  # type: ignore[attr-defined]
-            g = parent.props.gap
+        if sg := subgrid_cells(node):
+            gc = GridLayout.cells(sg.parent)
+            csize = gc.dimensions
+            cell = sg.cell
+            g = sg.parent.props.gap
             p = node.props.padding
-            s = csize[axis][cell.pos[axis]]
-            return (
-                p[axis] + p[axis + 2] + csize[axis][cell.pos[axis] + cell.size[axis]] - s - g[axis]
-            )
+            s = csize[axis][cell.start[axis]]
+            return p[axis] + p[axis + 2] + csize[axis][cell.end[axis]] - s - g[axis]
         else:
-            _, csize = GridLayout.cells(node)
+            csize = GridLayout.cells(node).dimensions
             p = node.props.padding
             g = node.props.gap
-            return csize[axis][-1] + p[axis + 2] - g[axis]
+            return p[axis] + csize[axis][-1] + p[axis + 2] - g[axis]
+
+    @overload
+    @staticmethod
+    def cells(node: 'Node', subgrid: SubGrid) -> SubGridCells: ...
+
+    @overload
+    @staticmethod
+    def cells(node: 'Node') -> GridCells: ...
 
     @staticmethod
-    def cells(node: 'Node', subgrid: SubGrid | None = None) -> CellsResult:
+    def cells(node: 'Node', subgrid: SubGrid | None = None) -> SubGridCells | GridCells:
         try:
             return node._grid_cells  # type: ignore[no-any-return,attr-defined]
         except AttributeError:
@@ -70,18 +108,19 @@ class GridLayout:
             d = subgrid.direction
             o = [1, 0][d]
             max_size = subgrid.max_size
+            grid_origin = subgrid.origin
+            rc = subgrid.rc
+            parent = subgrid.parent
         else:
             d = node.props.direction
             o = [1, 0][d]
             max_size = node.props.grid_size[d]
+            grid_origin = 0, 0
+            rc = ({}, {})
+            parent = node
 
-        p = node.props.padding
-        result: CellsResult = (cells := [], (ccol := [p[0]], crow := [p[1]]))
-
+        cells = []
         imax_size = 0
-        rows: dict[int, list[Cell]] = {}
-        cols: dict[int, list[Cell]] = {}
-        rc = (cols, rows)
         r = c = 1  # rows and cols are 1-base indexed
         for it in node.children:
             cs, ce = next_span(c, it.props.grid_cell[d], max_size or imax_size)
@@ -94,7 +133,7 @@ class GridLayout:
             r = rs
 
             # for cells we convert 1-base into 0-base as more convenient to handle
-            opos = dtup2(d, cs - 1, rs - 1)
+            opos = dtup2(d, cs - 1 + grid_origin[d], rs - 1 + grid_origin[o])
             if it.props.subgrid:
                 main_span = ce - cs > 1
                 alt_span = re - rs > 1
@@ -111,33 +150,32 @@ class GridLayout:
                 elif alt_span:
                     sg_dir = o
                     sg_max_size = re - rs
-                subcells = GridLayout.cells(it, SubGrid(sg_dir, sg_max_size))[0]
-                batch = []
-                gr = re
-                for sc in subcells:
-                    npos = (opos[0] + sc.pos[0], opos[1] + sc.pos[1])
-                    newcell = replace(sc, pos=npos)
-                    c = max(c, newcell.pos[d] + newcell.size[d] + 1)
-                    gr = max(gr, newcell.pos[o] + newcell.size[o] + 1)
-                    batch.append(newcell)
-                it._grid_subgrid_cell = Cell(opos, dtup2(d, c - cs, gr - rs), it)  # type: ignore[attr-defined]
-                it._parent_grid = node  # type: ignore[attr-defined]
+                subcells = GridLayout.cells(it, SubGrid(parent, sg_dir, sg_max_size, opos, rc))
+                cells.extend(subcells.cells)
+                c = subcells.cell.end[d] + 1
             else:
-                batch = [Cell(opos, dtup2(d, ce - cs, re - rs), it)]
-
-            for cell in batch:
+                cell = Cell(opos, dtup2(d, ce - 1 + grid_origin[d], re - 1 + grid_origin[o]), it)
                 cells.append(cell)
-                for cc in range(cell.size[d]):
-                    rc[d].setdefault(cell.pos[d] + cc, []).append(cell)
-                for rr in range(cell.size[o]):
-                    rc[o].setdefault(cell.pos[o] + rr, []).append(cell)
+                for i in range(cell.start[d], cell.end[d]):
+                    rc[d].setdefault(i, []).append(cell)
+                for i in range(cell.start[o], cell.end[o]):
+                    rc[o].setdefault(i, []).append(cell)
 
             if max_size is not None and c > max_size:
                 c = 1
                 r += 1
 
-        col_count = max(it.pos[0] + it.size[0] for it in cells)
-        row_count = max(it.pos[1] + it.size[1] for it in cells)
+        if subgrid:
+            max_x = max(it.end[0] for it in cells)
+            max_y = max(it.end[1] for it in cells)
+            cell = Cell(opos, (max_x, max_y), node)
+            result = SubGridCells(parent, cell, cells)
+            node._subgrid_cells = result  # type: ignore[attr-defined]
+            return result
+
+        cols, rows = rc
+        col_count = max(it.end[0] for it in cells)
+        row_count = max(it.end[1] for it in cells)
         row_heights = [
             max((it.node.size[1] / it.size[1] for it in rows.get(i, [])), default=0)
             for i in range(row_count)
@@ -147,44 +185,53 @@ class GridLayout:
             for j in range(col_count)
         ]
 
+        crow = [0.0]
         g = node.props.gap
         for h in row_heights:
             crow.append(crow[-1] + h + g[1])
 
+        ccol = [0.0]
         for w in col_widths:
             ccol.append(ccol[-1] + w + g[0])
 
-        node._grid_cells = result  # type: ignore[attr-defined]
-        return result
+        gresult = GridCells(cells, (ccol, crow))
+        node._grid_cells = gresult  # type: ignore[attr-defined]
+        return gresult
 
     @staticmethod
     def arrange(node: 'Node') -> None:
-        if node.props.subgrid:
-            parent: Node = node._parent_grid  # type: ignore[attr-defined]
-            cell: Cell = node._grid_subgrid_cell  # type: ignore[attr-defined]
-            csize: tuple[list[float], list[float]]
-            _, csize = parent._grid_cells  # type: ignore[attr-defined]
+        if sg := subgrid_cells(node):
+            gc = GridLayout.cells(sg.parent)
+            csize = gc.dimensions
+            cell = sg.cell
+
+            if lparent := nearest_parent(node):
+                offset = lparent.position
+            else:
+                offset = (0, 0)
             p = node.props.padding
-            pos = csize[0][cell.pos[0]], csize[1][cell.pos[1]]
-            node.position = np = pos[0] - p[0], pos[1] - p[1]
-            cells, _ = GridLayout.cells(node)
+            pos = csize[0][cell.start[0]], csize[1][cell.start[1]]
+            node.position = np = pos[0] - p[0] - offset[0], pos[1] - p[1] - offset[1]
             if not node.props.virtual:
-                for it in cells:
+                for it in sg.cells:
                     ip = it.node.position
                     it.node.position = (ip[0] - np[0], ip[1] - np[1])
             return
 
-        cells, (ccol, crow) = GridLayout.cells(node)
+        gc = GridLayout.cells(node)
+        ccol, crow = gc.dimensions
         c = node.origin
         g = node.props.gap
+        p = node.props.padding
 
-        for it in cells:
+        for it in gc.cells:
             align = it.node.align(node)
-            s = ccol[it.pos[0]], crow[it.pos[1]]
-            bw = ccol[it.pos[0] + it.size[0]] - s[0] - g[0]
-            bh = crow[it.pos[1] + it.size[1]] - s[1] - g[1]
+            s = ccol[it.start[0]], crow[it.start[1]]
+            bw = ccol[it.end[0]] - s[0] - g[0]
+            bh = crow[it.end[1]] - s[1] - g[1]
             pos = (
-                c[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
-                c[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
+                c[0] + p[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
+                c[1] + p[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
             )
             it.node.position = pos
+            it.node._grid_position = pos  # type: ignore[attr-defined]
