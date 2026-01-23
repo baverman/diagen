@@ -6,3 +6,4 @@
 
 # Investigate
 * Wrap nodes
+* get_parent maybe is generic enough to include in nodes as cached properties (real_parent?)

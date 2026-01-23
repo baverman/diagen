@@ -52,7 +52,7 @@ def test_showcase(render: None) -> None:
 
 
 def test_c4_shapes(render: None) -> None:
-    with c4.Boundary['dv gap-8 grid-3 items-align-start items-valign-end']('Boundary'):
+    with c4.Boundary['gap-8 grid-cols-3 items-align-start items-valign-end']('Boundary'):
         with grid['col-1: gap-8']:
             c4.Person('Person')
             c4.ExtPerson('Ext person')

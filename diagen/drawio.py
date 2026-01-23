@@ -7,6 +7,7 @@ from typing import Literal
 from urllib import parse
 
 from . import base_node
+from .layouts import PositionInfo
 from .nodes import Edge, Node, Port
 from .stylemap import BackendStyle, NodeKeys
 from .utils import dtup2
@@ -37,25 +38,9 @@ def get_parent(node: Node) -> Node:
         raise RuntimeError(f'No parent found for: {node}')
 
 
-def abs_position(node: Node) -> tuple[float, float]:
-    try:
-        return node._abs_position  # type: ignore[no-any-return,attr-defined]
-    except AttributeError:
-        pass
-
-    p = node.position
-    if node.oparent:
-        pp = abs_position(node.oparent)
-    else:
-        pp = 0, 0
-    result = p[0] + pp[0], p[1] + pp[1]
-    node._abs_position = result  # type: ignore[attr-defined]
-    return result
-
-
-def make_geom(node: Node) -> element:
-    p = abs_position(node)
-    pp = abs_position(get_parent(node))
+def make_geom(info: PositionInfo, node: Node) -> element:
+    p = info[node]
+    pp = info[get_parent(node)]
     x, y = p[0] - pp[0], p[1] - pp[1]
     w, h = node.size
     return element(
@@ -65,7 +50,7 @@ def make_geom(node: Node) -> element:
     )
 
 
-def node_element(node: Node) -> element:
+def node_element(info: PositionInfo, node: Node) -> element:
     attrs = {
         'id': node.id,
         'parent': get_parent(node).id,
@@ -79,11 +64,11 @@ def node_element(node: Node) -> element:
     if node.props.link:
         attrs['link'] = node.props.link
 
-    return element('mxCell', attrs, [make_geom(node)])
+    return element('mxCell', attrs, [make_geom(info, node)])
 
 
 def port_element(
-    edge: Edge, port: Port, axis: int, align: float, offset: tuple[float, float]
+    info: PositionInfo, edge: Edge, port: Port, axis: int, align: float, offset: tuple[float, float]
 ) -> element:
     node = port.node
     o = [1, 0][axis]
@@ -94,19 +79,20 @@ def port_element(
         'style': 'container=0;fillColor=none;strokeColor=none',
     }
     port_node = base_node(props=NodeKeys(scale=1, size=(3, 3)))
-    ac = offset[0] * node.size[axis] - 1.5
-    oc = offset[1] + (node.size[o] - 3) / 2.0 * (align + 1)
-    port_node.position = dtup2(axis, ac, oc)
-    port_node.parent = port_node.oparent = node
-    return element('mxCell', attrs, [make_geom(port_node)])
+    origin = info[node]
+    ac = origin[axis] + offset[0] * node.size[axis] - 1.5
+    oc = origin[o] + offset[1] + (node.size[o] - 3) / 2.0 * (align + 1)
+    info[port_node] = dtup2(axis, ac, oc)
+    port_node.parent = node
+    return element('mxCell', attrs, [make_geom(info, port_node)])
 
 
-def arrange_port(edge: Edge, port: Port) -> element:
+def arrange_port(info: PositionInfo, edge: Edge, port: Port) -> element:
     edges = port.node.edge_positions[port.side]
     pos = edges[edge]
     axis = 1 if port.side in (0, 2) else 0
     align = -1 if port.side in (0, 1) else 1
-    return port_element(edge, port, axis, align, (pos, 0))
+    return port_element(info, edge, port, axis, align, (pos, 0))
 
 
 CONSTRAINT = ['west', 'north', 'east', 'south']
@@ -116,7 +102,7 @@ def port_style(port: Port, kind: Literal['source'] | Literal['target']) -> Backe
     return {f'{kind}PortConstraint': CONSTRAINT[port.side]}
 
 
-def edge_element(edge: Edge) -> list[element]:
+def edge_element(info: PositionInfo, edge: Edge) -> list[element]:
     geom = element('mxGeometry', {'as': 'geometry', 'relative': '1'}, [])
     attrs = {
         'edge': '1',
@@ -135,12 +121,12 @@ def edge_element(edge: Edge) -> list[element]:
 
     if isinstance(edge.source, Port):
         style.update(port_style(edge.source, 'source'))
-        result.append(el := arrange_port(edge, edge.source))
+        result.append(el := arrange_port(info, edge, edge.source))
         attrs['source'] = el.attrs['id']
 
     if isinstance(edge.target, Port):
         style.update(port_style(edge.target, 'target'))
-        result.append(el := arrange_port(edge, edge.target))
+        result.append(el := arrange_port(info, edge, edge.target))
         attrs['target'] = el.attrs['id']
 
     attrs['style'] = style_to_str(style)
@@ -166,7 +152,6 @@ def edge_element(edge: Edge) -> list[element]:
 def make_model(node: Node) -> element:
     root_node = base_node(node)
     root_node.id = '__root__'
-    root_node.position = (0, 0)
 
     root = element(
         'root',
@@ -179,21 +164,21 @@ def make_model(node: Node) -> element:
 
     children = []
 
-    idconter = count()
+    idcounter = count()
     edges = set()
-    root_node.arrange()
+    info = root_node.arrange()
     for it in root_node.walk(include_virtual=False):
         edges.update(it.edges)
         if not it.id:
-            it.id = f'diagen-{next(idconter)}'
-        children.append(node_element(it))
+            it.id = f'diagen-{next(idcounter)}'
+        children.append(node_element(info, it))
 
     children.reverse()
 
     for edge in edges:
         if not edge.id:
-            edge.id = f'diagen-{next(idconter)}'
-        children.extend(edge_element(edge))
+            edge.id = f'diagen-{next(idcounter)}'
+        children.extend(edge_element(info, edge))
 
     root.children.extend(children)
     attrs = {

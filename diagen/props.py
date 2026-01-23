@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Protocol, TypedDict
 
 if TYPE_CHECKING:
+    from .layouts import PositionInfo
     from .nodes import Node
 
 
@@ -12,7 +13,7 @@ ClassList = str | list[str]
 class Layout(Protocol):
     def size(self, node: 'Node', axis: int) -> float: ...
 
-    def arrange(self, node: 'Node') -> None: ...
+    def arrange(self, info: 'PositionInfo', node: 'Node') -> None: ...
 
 
 @dataclass(frozen=True)

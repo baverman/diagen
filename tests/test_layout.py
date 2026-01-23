@@ -30,10 +30,10 @@ def test_hstack() -> None:
     assert s.size[0] == 2 + 2 + 1 + 2
     assert s.size[1] == 5
 
-    s.arrange()
-    assert s.position == (0, 0)
-    assert n1.position == (1, 2)
-    assert n2.position == (4, 1)
+    info = s.arrange()
+    assert info[s] == (0, 0)
+    assert info[n1] == (1, 2)
+    assert info[n2] == (4, 1)
 
 
 def test_vstack() -> None:
@@ -41,26 +41,26 @@ def test_vstack() -> None:
     assert s.size[1] == 2 + 2 + 1 + 3
     assert s.size[0] == 4
 
-    s.arrange()
-    assert s.position == (0, 0)
-    assert n1.position == (1.5, 1)
-    assert n2.position == (1, 4)
+    info = s.arrange()
+    assert info[s] == (0, 0)
+    assert info[n1] == (1.5, 1)
+    assert info[n2] == (1, 4)
 
 
 def test_stack_items_align() -> None:
     s = grid['items-valign-start'](n1 := node['w-1 h-1'](), n2 := node['w-1 h-3']())
 
-    s.arrange()
-    assert n1.position == (0, 0)
-    assert n2.position == (1, 0)
+    info = s.arrange()
+    assert info[n1] == (0, 0)
+    assert info[n2] == (1, 0)
 
 
 def test_stack_align() -> None:
     s = grid['items-valign-start'](n1 := node['w-1 h-1 valign-end'](), n2 := node['w-1 h-3']())
 
-    s.arrange()
-    assert n1.position == (0, 2)
-    assert n2.position == (1, 0)
+    info = s.arrange()
+    assert info[n1] == (0, 2)
+    assert info[n2] == (1, 0)
 
 
 def test_grid() -> None:
@@ -70,11 +70,11 @@ def test_grid() -> None:
         n21 = node['col-1 w-3 h-1']()
         n22 = node['w-3 h-3']()
 
-    s.arrange()
-    assert n11.position == (2, 2)
-    assert n12.position == (6, 1)
-    assert n21.position == (1, 6)
-    assert n22.position == (5, 5)
+    info = s.arrange()
+    assert info[n11] == (2, 2)
+    assert info[n12] == (6, 1)
+    assert info[n21] == (1, 6)
+    assert info[n22] == (5, 5)
 
 
 def test_context_manager() -> None:

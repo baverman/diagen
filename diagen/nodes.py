@@ -2,6 +2,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Any, Collection, Generic, Iterable, Self, Union, Unpack
 
+from .layouts import PositionInfo
 from .stylemap import (
     ClassList,
     EdgeKeys,
@@ -23,25 +24,23 @@ AnyNode = Union['Node', str]
 class Node:
     children: list['Node']
     parent: Union['Node', None]
-    oparent: Union['Node', None]
     edges: list['Edge']
 
     def __init__(
         self, props: NodeProps, children: Collection[AnyNode], stylemap: NodeStyleMap
     ) -> None:
         self.id = ''
-        self.parent = self.oparent = None
+        self.parent = None
         self.props = stylemap.eval_props(props)
         self.label = list(it for it in children if isinstance(it, str))
         self.children = list(it for it in children if isinstance(it, Node))
-        self.position: tuple[float, float] = (0, 0)
         self.stylemap = stylemap
         self.edges = []
 
         self._added = False
 
         for it in self.children:
-            it.parent = it.oparent = self
+            it.parent = self
             it._added = True
 
         if _children_stack:
@@ -63,7 +62,8 @@ class Node:
         children = _children_stack.pop()
         for it in children:
             if isinstance(it, Node) and not it._added:
-                it.parent = it.oparent = self
+                it.parent = self
+                it._added = True
                 self.children.append(it)
 
     @cached_property
@@ -74,13 +74,18 @@ class Node:
             self.props.layout.size(self, 1) if h < 0 else h,
         )
 
-    def arrange(self) -> None:
-        if not self.children:
-            return
+    def arrange(self, info: PositionInfo | None = None) -> PositionInfo:
+        if info is None:
+            info = {None: (0, 0)}
 
-        self.props.layout.arrange(self)
+        if not self.children:
+            return info
+
+        self.props.layout.arrange(info, self)
         for it in self.children:
-            it.arrange()
+            it.arrange(info)
+
+        return info
 
     def walk(self, include_virtual: bool = True) -> Iterable['Node']:
         for it in self.children:
@@ -92,7 +97,7 @@ class Node:
         return self.props.label_formatter(self.props, self.label)
 
     def __repr__(self) -> str:
-        return f'Node#{id(self):X}(size={self.props.size})'
+        return f'Node#{id(self):X}(size={self.props.size}, label={self.label})'
 
     @property
     def l(self) -> 'Port':

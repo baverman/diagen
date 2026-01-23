@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, overload
 
 from ..props import Span
 from ..utils import dtup2
+from . import PositionInfo
 
 if TYPE_CHECKING:
     from ..nodes import Node
@@ -190,15 +191,19 @@ class GridLayout:
         return gresult
 
     @staticmethod
-    def arrange(node: 'Node') -> None:
+    def arrange(info: PositionInfo, node: 'Node') -> None:
         if sgc := subgrid_cells(node):
             gc = GridLayout.cells(sgc.parent)
             ccol, crow = gc.dimensions
             cell = sgc.cell
 
+            origin = info[sgc.parent]
             p = node.props.padding
-            node.position = ccol[cell.start[0]] - p[0], crow[cell.start[1]] - p[1]
-            node.oparent = sgc.parent
+
+            info[node] = (
+                origin[0] + ccol[cell.start[0]] - p[0],
+                origin[1] + crow[cell.start[1]] - p[1],
+            )
             return
 
         gc = GridLayout.cells(node)
@@ -206,14 +211,18 @@ class GridLayout:
         g = node.props.gap
         p = node.props.padding
 
+        if node in info:
+            origin = info[node]
+        else:
+            origin = info[node] = info[node.parent]
+
         for it in gc.cells:
             align = it.node.align(node)
             s = ccol[it.start[0]], crow[it.start[1]]
             bw = ccol[it.end[0]] - s[0] - g[0]
             bh = crow[it.end[1]] - s[1] - g[1]
             pos = (
-                p[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
-                p[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
+                origin[0] + p[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
+                origin[1] + p[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
             )
-            it.node.position = pos
-            it.node.oparent = node
+            info[it.node] = pos
