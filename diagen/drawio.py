@@ -20,8 +20,43 @@ def style_to_str(style: BackendStyle) -> str:
     return ';'.join(f'{k}={v}' for k, v in style.items())
 
 
+def get_parent(node: Node) -> Node:
+    try:
+        return node._nv_parent  # type: ignore[no-any-return,attr-defined]
+    except AttributeError:
+        pass
+
+    result = node.parent
+    if result:
+        if result.props.virtual:
+            result = get_parent(result)
+
+        node._nv_parent = result  # type: ignore[attr-defined]
+        return result
+    else:
+        raise RuntimeError(f'No parent found for: {node}')
+
+
+def abs_position(node: Node) -> tuple[float, float]:
+    try:
+        return node._abs_position  # type: ignore[no-any-return,attr-defined]
+    except AttributeError:
+        pass
+
+    p = node.position
+    if node.oparent:
+        pp = abs_position(node.oparent)
+    else:
+        pp = 0, 0
+    result = p[0] + pp[0], p[1] + pp[1]
+    node._abs_position = result  # type: ignore[attr-defined]
+    return result
+
+
 def make_geom(node: Node) -> element:
-    x, y = node.position
+    p = abs_position(node)
+    pp = abs_position(get_parent(node))
+    x, y = p[0] - pp[0], p[1] - pp[1]
     w, h = node.size
     return element(
         'mxGeometry',
@@ -33,7 +68,7 @@ def make_geom(node: Node) -> element:
 def node_element(node: Node) -> element:
     attrs = {
         'id': node.id,
-        'parent': node.parent_id,
+        'parent': get_parent(node).id,
         'vertex': '1',
         'style': style_to_str(node.props.drawio_style),
     }
@@ -59,9 +94,10 @@ def port_element(
         'style': 'container=0;fillColor=none;strokeColor=none',
     }
     port_node = base_node(props=NodeKeys(scale=1, size=(3, 3)))
-    ac = node.origin[axis] + offset[0] * node.size[axis] - 1.5
-    oc = node.origin[o] + (node.size[o] - 3) / 2.0 * (align + 1) + offset[1]
+    ac = offset[0] * node.size[axis] - 1.5
+    oc = offset[1] + (node.size[o] - 3) / 2.0 * (align + 1)
     port_node.position = dtup2(axis, ac, oc)
+    port_node.parent = port_node.oparent = node
     return element('mxCell', attrs, [make_geom(port_node)])
 
 
@@ -85,7 +121,7 @@ def edge_element(edge: Edge) -> list[element]:
     attrs = {
         'edge': '1',
         'id': edge.id,
-        'parent': edge.source.node_ref.parent_id,
+        'parent': get_parent(edge.source.node_ref).id,
         'source': edge.source.node_ref.id,
         'target': edge.target.node_ref.id,
     }
@@ -146,7 +182,7 @@ def make_model(node: Node) -> element:
     idconter = count()
     edges = set()
     root_node.arrange()
-    for it in root_node.walk():
+    for it in root_node.walk(include_virtual=False):
         edges.update(it.edges)
         if not it.id:
             it.id = f'diagen-{next(idconter)}'

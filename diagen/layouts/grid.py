@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, overload
+from typing import TYPE_CHECKING, overload
 
 from ..props import Span
 from ..utils import dtup2
@@ -61,15 +61,6 @@ def next_span(current: int, span: Span, max_size: int | None = None) -> tuple[in
 
 def subgrid_cells(node: 'Node') -> SubGridCells | None:
     return getattr(node, '_subgrid_cells', None)
-
-
-def nearest_parent(node: 'Node') -> Optional['Node']:
-    parent = node.parent
-    if not parent:
-        return None
-    if parent.props.virtual:
-        return nearest_parent(parent)
-    return parent
 
 
 class GridLayout:
@@ -200,27 +191,18 @@ class GridLayout:
 
     @staticmethod
     def arrange(node: 'Node') -> None:
-        if sg := subgrid_cells(node):
-            gc = GridLayout.cells(sg.parent)
-            csize = gc.dimensions
-            cell = sg.cell
+        if sgc := subgrid_cells(node):
+            gc = GridLayout.cells(sgc.parent)
+            ccol, crow = gc.dimensions
+            cell = sgc.cell
 
-            if lparent := nearest_parent(node):
-                offset = lparent.position
-            else:
-                offset = (0, 0)
             p = node.props.padding
-            pos = csize[0][cell.start[0]], csize[1][cell.start[1]]
-            node.position = np = pos[0] - p[0] - offset[0], pos[1] - p[1] - offset[1]
-            if not node.props.virtual:
-                for it in sg.cells:
-                    ip = it.node.position
-                    it.node.position = (ip[0] - np[0], ip[1] - np[1])
+            node.position = ccol[cell.start[0]] - p[0], crow[cell.start[1]] - p[1]
+            node.oparent = sgc.parent
             return
 
         gc = GridLayout.cells(node)
         ccol, crow = gc.dimensions
-        c = node.origin
         g = node.props.gap
         p = node.props.padding
 
@@ -230,8 +212,8 @@ class GridLayout:
             bw = ccol[it.end[0]] - s[0] - g[0]
             bh = crow[it.end[1]] - s[1] - g[1]
             pos = (
-                c[0] + p[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
-                c[1] + p[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
+                p[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
+                p[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
             )
             it.node.position = pos
-            it.node._grid_position = pos  # type: ignore[attr-defined]
+            it.node.oparent = node

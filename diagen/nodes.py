@@ -23,13 +23,14 @@ AnyNode = Union['Node', str]
 class Node:
     children: list['Node']
     parent: Union['Node', None]
+    oparent: Union['Node', None]
     edges: list['Edge']
 
     def __init__(
         self, props: NodeProps, children: Collection[AnyNode], stylemap: NodeStyleMap
     ) -> None:
         self.id = ''
-        self.parent = None
+        self.parent = self.oparent = None
         self.props = stylemap.eval_props(props)
         self.label = list(it for it in children if isinstance(it, str))
         self.children = list(it for it in children if isinstance(it, Node))
@@ -40,21 +41,11 @@ class Node:
         self._added = False
 
         for it in self.children:
+            it.parent = it.oparent = self
             it._added = True
 
         if _children_stack:
             _children_stack[-1].append(self)
-
-    @property
-    def parent_id(self) -> str:
-        return self.parent.id if self.parent else '__root__'
-
-    @property
-    def origin(self) -> tuple[float, float]:
-        if self.props.virtual:
-            return self.position
-        else:
-            return (0, 0)
 
     def align(self, parent: 'Node') -> tuple[float, float]:
         a0, a1 = self.props.align
@@ -70,7 +61,10 @@ class Node:
 
     def __exit__(self, *args: Any) -> None:
         children = _children_stack.pop()
-        self.children.extend(it for it in children if isinstance(it, Node) and not it._added)
+        for it in children:
+            if isinstance(it, Node) and not it._added:
+                it.parent = it.oparent = self
+                self.children.append(it)
 
     @cached_property
     def size(self) -> tuple[float, float]:
@@ -84,17 +78,15 @@ class Node:
         if not self.children:
             return
 
-        parent = self.parent if self.props.virtual else self
         self.props.layout.arrange(self)
         for it in self.children:
-            it.parent = parent
             it.arrange()
 
-    def walk(self) -> Iterable['Node']:
+    def walk(self, include_virtual: bool = True) -> Iterable['Node']:
         for it in self.children:
-            if not it.props.virtual:
+            if include_virtual or not it.props.virtual:
                 yield it
-            yield from it.walk()
+            yield from it.walk(include_virtual=include_virtual)
 
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
