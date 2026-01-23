@@ -96,6 +96,15 @@ class Node:
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
 
+    @cached_property
+    def real_parent(self) -> 'Node':
+        result = self.parent
+        if result:
+            if result.props.virtual:
+                return result.real_parent
+            return result
+        raise RuntimeError('Node tree has no common non-virtual parent')
+
     def __repr__(self) -> str:
         return f'Node#{id(self):X}(size={self.props.size}, label={self.label})'
 

@@ -21,26 +21,9 @@ def style_to_str(style: BackendStyle) -> str:
     return ';'.join(f'{k}={v}' for k, v in style.items())
 
 
-def get_parent(node: Node) -> Node:
-    try:
-        return node._nv_parent  # type: ignore[no-any-return,attr-defined]
-    except AttributeError:
-        pass
-
-    result = node.parent
-    if result:
-        if result.props.virtual:
-            result = get_parent(result)
-
-        node._nv_parent = result  # type: ignore[attr-defined]
-        return result
-    else:
-        raise RuntimeError(f'No parent found for: {node}')
-
-
 def make_geom(info: PositionInfo, node: Node) -> element:
     p = info[node]
-    pp = info[get_parent(node)]
+    pp = info[node.real_parent]
     x, y = p[0] - pp[0], p[1] - pp[1]
     w, h = node.size
     return element(
@@ -53,7 +36,7 @@ def make_geom(info: PositionInfo, node: Node) -> element:
 def node_element(info: PositionInfo, node: Node) -> element:
     attrs = {
         'id': node.id,
-        'parent': get_parent(node).id,
+        'parent': node.real_parent.id,
         'vertex': '1',
         'style': style_to_str(node.props.drawio_style),
     }
@@ -107,7 +90,7 @@ def edge_element(info: PositionInfo, edge: Edge) -> list[element]:
     attrs = {
         'edge': '1',
         'id': edge.id,
-        'parent': get_parent(edge.source.node_ref).id,
+        'parent': edge.source.node_ref.real_parent.id,
         'source': edge.source.node_ref.id,
         'target': edge.target.node_ref.id,
     }
