@@ -103,7 +103,7 @@ class Node:
             if result.props.virtual:
                 return result.real_parent
             return result
-        raise RuntimeError('Node tree has no common non-virtual parent')
+        raise RuntimeError('Node tree has no common non-virtual parent')  # pragma: no cover
 
     def __repr__(self) -> str:
         return f'Node#{id(self):X}(size={self.props.size}, label={self.label})'
@@ -172,10 +172,6 @@ class Port:
     @property
     def node_ref(self) -> Node:
         return self.node
-
-    @property
-    def parent(self) -> Node | None:
-        return self.node.parent
 
     def __getitem__(self, pos: int | float | ClassList) -> 'Port':
         if isinstance(pos, int):

@@ -45,3 +45,37 @@ def test_props_builder() -> None:
 
     n = fancy()
     assert n.props.size == (42, 42)
+
+    s = node()
+    t = node()
+    e = edge.props(scale=2, arc_size=10)(s, t)
+    e.props.drawio_style['arcSize'] == 20
+
+
+def test_repr() -> None:
+    repr(node())
+
+
+def test_grid_classes() -> None:
+    n = node['at-2']()
+    assert n.props.grid_cell[0].start == 2
+
+
+def test_align_classes() -> None:
+    n = node['valign-start']['valign-center']['items-align-start']['align-75']()
+    assert n.props.align == (0.5, 0)
+    assert n.props.items_align == (-1, 0)
+
+
+def test_node_size_classes() -> None:
+    n = node['size-5']()
+    assert n.props.size == (20, 20)
+
+    n = node['size-5/3']()
+    assert n.props.size == (20, 12)
+
+
+def test_edge_label_classes() -> None:
+    s, t = node(), node()
+    e = edge['label-75/10 label-/20'](s, t)
+    assert e.props.label_offset == (0.5, 80)

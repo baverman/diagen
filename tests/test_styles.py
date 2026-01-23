@@ -1,5 +1,7 @@
 from typing import Unpack
 
+import pytest
+
 from diagen import styles
 from diagen.stylemap import NodeKeys, NodeProps, Span
 
@@ -58,3 +60,8 @@ def test_edge_style() -> None:
     assert '@pop' not in result.drawio_style
     assert 'edgeStyle' not in result.drawio_style
     assert '@pop' in styles.edge._styles['edge-style-none']['drawio_style']
+
+
+def test_unknown_rule() -> None:
+    with pytest.raises(ValueError, match='Unknown class or rule: unknown'):
+        edge_resolve_classes('unknown')

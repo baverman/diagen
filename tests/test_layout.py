@@ -228,3 +228,57 @@ def test_nested_subgrid() -> None:
             ...0.
         """,
     )
+
+
+def test_nested_subgrid_span() -> None:
+    with grid as g:
+        with grid['subgrid at-2/2 span-2/2']:
+            node()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            ....
+            .0.1
+        """,
+    )
+
+    with grid as g:
+        with grid['subgrid dv at-2/2 span-2/2']:
+            node()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            ...
+            .01
+        """,
+    )
+
+    with grid as g:
+        with grid['subgrid at-2/2 span-2']:
+            node()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            ....
+            .0.1
+        """,
+    )
+
+    with grid as g:
+        with grid['subgrid at-2/2 span-/2']:
+            node()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            ...
+            .01
+        """,
+    )

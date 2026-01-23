@@ -32,8 +32,8 @@ def set_at(name: Literal['padding', 'size', 'gap'], *pos: int) -> NodeRuleValue:
             for p in pos:
                 result[p] = v
             return {name: tuple(result)}  # type: ignore[misc]
-        else:
-            return {name: v}  # type: ignore[misc]
+        else:  # pragma: no cover
+            assert False, 'set_at was called without pos args'
 
     return inner
 
@@ -131,7 +131,7 @@ def set_align(name: AlignLiteral, pos: int) -> NodeRuleValue:
         elif value == 'end':
             v = 1.0
         else:
-            v = float(value)
+            v = float(value) / 50 - 1
 
         return {name: mux2(pos, v, dyn[name])}
 

@@ -112,6 +112,7 @@ class GridLayout:
             parent = node
 
         cells = []
+        subgrids = []
         imax_size = 0
         r = c = 1  # rows and cols are 1-base indexed
         for it in node.children:
@@ -144,6 +145,7 @@ class GridLayout:
                     sg_max_size = re - rs
                 subcells = GridLayout.cells(it, SubGrid(parent, sg_dir, sg_max_size, opos, rc))
                 cells.extend(subcells.cells)
+                subgrids.append(subcells.cell)
                 c = subcells.cell.end[d] + 1
             else:
                 cell = Cell(opos, dtup2(d, ce - 1 + grid_origin[d], re - 1 + grid_origin[o]), it)
@@ -158,9 +160,11 @@ class GridLayout:
                 r += 1
 
         if subgrid:
-            max_x = max(it.end[0] for it in cells)
-            max_y = max(it.end[1] for it in cells)
-            cell = Cell(opos, (max_x, max_y), node)
+            max_main = max(
+                max(it.end[d] for it in cells + subgrids), grid_origin[d] + (max_size or 0)
+            )
+            max_alt = max(it.end[o] for it in cells + subgrids)
+            cell = Cell(opos, dtup2(d, max_main, max_alt), node)
             result = SubGridCells(parent, cell, cells)
             node._subgrid_cells = result  # type: ignore[attr-defined]
             return result
