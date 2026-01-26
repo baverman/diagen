@@ -2,7 +2,6 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Any, Collection, Generic, Iterable, Self, Union, Unpack
 
-from .layouts import PositionInfo
 from .stylemap import (
     ClassList,
     EdgeKeys,
@@ -23,14 +22,12 @@ AnyNode = Union['Node', str]
 
 class Node:
     children: list['Node']
-    parent: Union['Node', None]
     edges: list['Edge']
 
     def __init__(
         self, props: NodeProps, children: Collection[AnyNode], stylemap: NodeStyleMap
     ) -> None:
         self.id = ''
-        self.parent = None
         self.props = stylemap.eval_props(props)
         self.label = list(it for it in children if isinstance(it, str))
         self.children = list(it for it in children if isinstance(it, Node))
@@ -40,18 +37,17 @@ class Node:
         self._added = False
 
         for it in self.children:
-            it.parent = self
             it._added = True
 
         if _children_stack:
             _children_stack[-1].append(self)
 
-    def align(self, parent: 'Node') -> tuple[float, float]:
+    def align(self, parent_align: tuple[float, float]) -> tuple[float, float]:
         a0, a1 = self.props.align
         if a0 is None:
-            a0 = parent.props.items_align[0]
+            a0 = parent_align[0]
         if a1 is None:
-            a1 = parent.props.items_align[1]
+            a1 = parent_align[1]
         return a0, a1
 
     def __enter__(self) -> Self:
@@ -62,48 +58,11 @@ class Node:
         children = _children_stack.pop()
         for it in children:
             if isinstance(it, Node) and not it._added:
-                it.parent = self
                 it._added = True
                 self.children.append(it)
 
-    @cached_property
-    def size(self) -> tuple[float, float]:
-        w, h = self.props.size
-        return (
-            self.props.layout.size(self, 0) if w < 0 else w,
-            self.props.layout.size(self, 1) if h < 0 else h,
-        )
-
-    def arrange(self, info: PositionInfo | None = None) -> PositionInfo:
-        if info is None:
-            info = {None: (0, 0)}
-
-        if not self.children:
-            return info
-
-        self.props.layout.arrange(info, self)
-        for it in self.children:
-            it.arrange(info)
-
-        return info
-
-    def walk(self, include_virtual: bool = True) -> Iterable['Node']:
-        for it in self.children:
-            if include_virtual or not it.props.virtual:
-                yield it
-            yield from it.walk(include_virtual=include_virtual)
-
     def get_label(self) -> str:
         return self.props.label_formatter(self.props, self.label)
-
-    @cached_property
-    def real_parent(self) -> 'Node':
-        result = self.parent
-        if result:
-            if result.props.virtual:
-                return result.real_parent
-            return result
-        raise RuntimeError('Node tree has no common non-virtual parent')  # pragma: no cover
 
     def __repr__(self) -> str:
         return f'Node#{id(self):X}(size={self.props.size}, label={self.label})'

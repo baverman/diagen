@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Protocol, TypedDict
 
 if TYPE_CHECKING:
-    from .layouts import PositionInfo
-    from .nodes import Node
+    from .layouts import LayoutNode
 
 
 BackendStyle = dict[str, int | float | str | list[str]]
@@ -11,9 +10,9 @@ ClassList = str | list[str]
 
 
 class Layout(Protocol):
-    def size(self, node: 'Node', axis: int) -> float: ...
+    def size(self, node: 'LayoutNode') -> tuple[float, float]: ...
 
-    def arrange(self, info: 'PositionInfo', node: 'Node') -> None: ...
+    def arrange(self, node: 'LayoutNode') -> None: ...
 
 
 @dataclass(frozen=True)
@@ -29,7 +28,7 @@ class NodeProps:
     direction: int
     layout: 'Layout'
     scale: float
-    size: tuple[float, float]
+    size: tuple[float | None, float | None]
     padding: tuple[float, float, float, float]
     gap: tuple[float, float]
     virtual: bool
@@ -51,7 +50,7 @@ class NodeKeys(TypedDict, total=False):
     direction: int
     layout: 'Layout'
     scale: float
-    size: tuple[float, float]
+    size: tuple[float | None, float | None]
     padding: tuple[float, float, float, float]
     gap: tuple[float, float]
     virtual: bool

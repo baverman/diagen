@@ -1,5 +1,16 @@
 # TODO
 
+* Reset real_parent on node parenting.
+* Node classes.
+  - dashed
+  - rounded
+  - colors
+  - TBF
+* Font classes (node/edge)
+* CLI
+  - Export drawio xml file (compression, root classes)
+  - Export image (use drawio binary)
+* Export html for fast interactive editing.
 * Node *N visual stacks (resolve naming conflict with existing stack primitive)
 * Create some diagrams
 * Z-index. Children should inherit parent's depth.

@@ -1,12 +1,9 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, overload
+from typing import overload
 
 from ..props import Span
 from ..utils import dtup2
-from . import PositionInfo
-
-if TYPE_CHECKING:
-    from ..nodes import Node
+from . import LayoutNode
 
 
 @dataclass
@@ -14,7 +11,7 @@ class Cell:
     # 0-base indexes
     start: tuple[int, int]
     end: tuple[int, int]
-    node: 'Node'
+    node: LayoutNode
 
     @property
     def size(self) -> tuple[int, int]:
@@ -25,7 +22,7 @@ class Cell:
 
 @dataclass
 class SubGrid:
-    parent: 'Node'
+    parent: LayoutNode
     direction: int
     max_size: int | None
     origin: tuple[int, int]
@@ -40,7 +37,7 @@ class GridCells:
 
 @dataclass
 class SubGridCells:
-    parent: 'Node'
+    parent: LayoutNode
     cell: Cell
     cells: list[Cell]
 
@@ -60,37 +57,51 @@ def next_span(current: int, span: Span, max_size: int | None = None) -> tuple[in
     return start, end
 
 
-def subgrid_cells(node: 'Node') -> SubGridCells | None:
+def subgrid_cells(node: LayoutNode) -> SubGridCells | None:
     return getattr(node, '_subgrid_cells', None)
 
 
 class GridLayout:
     @staticmethod
-    def size(node: 'Node', axis: int) -> float:
+    def size(node: LayoutNode) -> tuple[float, float]:
+        w, h = node.props.size
+        if w is not None and h is not None:
+            return w, h
+
         if sg := subgrid_cells(node):
             gc = GridLayout.cells(sg.parent)
-            csize = gc.dimensions
+            ccol, crow = gc.dimensions
             cell = sg.cell
             g = sg.parent.props.gap
             p = node.props.padding
-            s = csize[axis][cell.start[axis]]
-            return p[axis] + p[axis + 2] + csize[axis][cell.end[axis]] - s - g[axis]
+            s = ccol[cell.start[0]], crow[cell.start[1]]
+
+            if w is None:
+                w = p[0] + p[2] + ccol[cell.end[0]] - s[0] - g[0]
+            if h is None:
+                h = p[1] + p[3] + crow[cell.end[1]] - s[1] - g[1]
         else:
             csize = GridLayout.cells(node).dimensions
             p = node.props.padding
             g = node.props.gap
-            return p[axis] + csize[axis][-1] + p[axis + 2] - g[axis]
+
+            if w is None:
+                w = p[0] + csize[0][-1] + p[2] - g[0]
+            if h is None:
+                h = p[1] + csize[1][-1] + p[3] - g[1]
+
+        return w, h
 
     @overload
     @staticmethod
-    def cells(node: 'Node', subgrid: SubGrid) -> SubGridCells: ...
+    def cells(node: LayoutNode, subgrid: SubGrid) -> SubGridCells: ...
 
     @overload
     @staticmethod
-    def cells(node: 'Node') -> GridCells: ...
+    def cells(node: LayoutNode) -> GridCells: ...
 
     @staticmethod
-    def cells(node: 'Node', subgrid: SubGrid | None = None) -> SubGridCells | GridCells:
+    def cells(node: LayoutNode, subgrid: SubGrid | None = None) -> SubGridCells | GridCells:
         try:
             return node._grid_cells  # type: ignore[no-any-return,attr-defined]
         except AttributeError:
@@ -195,16 +206,16 @@ class GridLayout:
         return gresult
 
     @staticmethod
-    def arrange(info: PositionInfo, node: 'Node') -> None:
+    def arrange(node: LayoutNode) -> None:
         if sgc := subgrid_cells(node):
             gc = GridLayout.cells(sgc.parent)
             ccol, crow = gc.dimensions
             cell = sgc.cell
 
-            origin = info[sgc.parent]
+            origin = sgc.parent.position
             p = node.props.padding
 
-            info[node] = (
+            node.position = (
                 origin[0] + ccol[cell.start[0]] - p[0],
                 origin[1] + crow[cell.start[1]] - p[1],
             )
@@ -215,13 +226,9 @@ class GridLayout:
         g = node.props.gap
         p = node.props.padding
 
-        if node in info:
-            origin = info[node]
-        else:
-            origin = info[node] = info[node.parent]
-
+        origin = node.position
         for it in gc.cells:
-            align = it.node.align(node)
+            align = it.node.node.align(node.props.items_align)
             s = ccol[it.start[0]], crow[it.start[1]]
             bw = ccol[it.end[0]] - s[0] - g[0]
             bh = crow[it.end[1]] - s[1] - g[1]
@@ -229,4 +236,4 @@ class GridLayout:
                 origin[0] + p[0] + s[0] + (bw - it.node.size[0]) / 2 * (align[0] + 1),
                 origin[1] + p[1] + s[1] + (bh - it.node.size[1]) / 2 * (align[1] + 1),
             )
-            info[it.node] = pos
+            it.node.position = pos

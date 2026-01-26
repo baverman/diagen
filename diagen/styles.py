@@ -45,7 +45,7 @@ def eval_node_props(props: NodeProps) -> NodeProps:
     p = props.padding
     return replace(
         props,
-        size=(s[0] * m, s[1] * m),
+        size=(s[0] * m if s[0] is not None else None, s[1] * m if s[1] is not None else None),
         gap=(g[0] * m, g[1] * m),
         padding=(
             p[0] * m,
@@ -252,7 +252,7 @@ node = StyleMap[NodeProps, NodeKeys](
     NodeProps(
         direction=0,
         layout=GridLayout,
-        size=(-1, -1),
+        size=(None, None),
         padding=(0, 0, 0, 0),
         gap=(0, 0),
         scale=4.0,
