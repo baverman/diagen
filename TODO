@@ -1,6 +1,6 @@
 # TODO
 
-* Reset real_parent on node parenting.
+* Node context, handle functions
 * Node classes.
   - dashed
   - rounded

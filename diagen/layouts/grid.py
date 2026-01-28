@@ -125,12 +125,14 @@ class GridLayout:
         cells = []
         subgrids = []
         imax_size = 0
+        next_r = 2
         r = c = 1  # rows and cols are 1-base indexed
         for it in node.children:
             cs, ce = next_span(c, it.props.grid_cell[d], max_size or imax_size)
             imax_size = max(imax_size, ce - 1)
             if cs < c:
-                r += 1
+                r = next_r
+                next_r = r + 1
             c = ce
 
             rs, re = next_span(r, it.props.grid_cell[o])
@@ -156,8 +158,9 @@ class GridLayout:
                     sg_max_size = re - rs
                 subcells = GridLayout.cells(it, SubGrid(parent, sg_dir, sg_max_size, opos, rc))
                 cells.extend(subcells.cells)
-                subgrids.append(subcells.cell)
-                c = subcells.cell.end[d] + 1
+                cell = subcells.cell
+                subgrids.append(cell)
+                c = cell.end[d] + 1
             else:
                 cell = Cell(opos, dtup2(d, ce - 1 + grid_origin[d], re - 1 + grid_origin[o]), it)
                 cells.append(cell)
@@ -166,9 +169,12 @@ class GridLayout:
                 for i in range(cell.start[o], cell.end[o]):
                     rc[o].setdefault(i, []).append(cell)
 
+            next_r = max(next_r, cell.end[o] + 1)
+
             if max_size is not None and c > max_size:
                 c = 1
-                r += 1
+                r = next_r
+                next_r = r + 1
 
         if subgrid:
             max_main = max(

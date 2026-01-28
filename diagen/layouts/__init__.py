@@ -30,6 +30,9 @@ class LayoutNode:
             return result
         raise RuntimeError('Node tree has no common non-virtual parent')  # pragma: no cover
 
+    def __repr__(self) -> str:
+        return f'LayoutNode(position={self.position}, node={self.node})'
+
 
 def _make_layout_tree(parent: LayoutNode | None, node: 'Node') -> LayoutNode:
     children: list[LayoutNode]

@@ -285,3 +285,48 @@ def test_nested_subgrid_span() -> None:
             .01
         """,
     )
+
+
+def test_span_should_increase_next_row() -> None:
+    with grid as g:
+        node['span-2/2']()
+        node['col-1']()
+
+    assert_grid(g, '00\n00\n1.')
+
+    with grid['grid-cols-2'] as g:
+        node['span-2/2']()
+        node()
+
+    assert_grid(g, '00\n00\n1.')
+
+
+def test_subgrid_should_increase_next_row() -> None:
+    with grid as g:
+        with grid['subgrid']:
+            node['at-2/2']()
+        node['col-1']()
+
+    assert_grid(g, '..\n.0\n1.')
+
+    with grid['grid-cols-2'] as g:
+        with grid['subgrid']:
+            node['at-2/2']()
+        node()
+
+    assert_grid(g, '..\n.0\n1.')
+
+
+def test_implicit_subgrid_should_use_origin_as_start() -> None:
+    with grid as g:
+        with grid['subgrid']:
+            node['at-2/2']()
+        node()
+
+    assert_grid(
+        g,
+        """\
+            ..1
+            .0.
+        """,
+    )
