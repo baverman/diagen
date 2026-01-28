@@ -1,5 +1,7 @@
 from . import styles
-from .nodes import EdgeFactory, NodeFactory
+from .nodes import EdgeFactory, NodeFactory, isolate
+
+__all__ = ['isolate']
 
 base_node = NodeFactory(styles.node)
 grid = base_node['virtual']

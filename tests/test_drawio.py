@@ -13,7 +13,7 @@ def render(
 ) -> Iterator[None]:
     marker = request.node.get_closest_marker('fname')
     nodes: list[Node]
-    _children_stack[:] = [nodes := []]
+    token = _children_stack.set(nodes := [])
 
     yield
 
@@ -25,7 +25,7 @@ def render(
     with open(tmp_path_factory.getbasetemp() / fname, 'w') as f:
         f.write(drawio.render(nodes[0], compress=False))
 
-    _children_stack.clear()
+    _children_stack.reset(token)
 
 
 def test_showcase(render: None) -> None:

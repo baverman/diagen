@@ -1,6 +1,8 @@
+from contextlib import contextmanager
+from contextvars import ContextVar, Token
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import Any, Collection, Generic, Iterable, Self, Union, Unpack
+from typing import Any, Collection, Generic, Iterable, Iterator, Self, Union, Unpack
 
 from .stylemap import (
     ClassList,
@@ -15,7 +17,7 @@ from .stylemap import (
     StyleMap,
 )
 
-_children_stack: list[list['Node']] = []
+_children_stack = ContextVar[list['Node']]('_children_stack')
 
 AnyNode = Union['Node', str]
 
@@ -23,6 +25,7 @@ AnyNode = Union['Node', str]
 class Node:
     children: list['Node']
     edges: list['Edge']
+    _cs_token: list[Token[list['Node']]]
 
     def __init__(
         self, props: NodeProps, children: Collection[AnyNode], stylemap: NodeStyleMap
@@ -35,12 +38,13 @@ class Node:
         self.edges = []
 
         self._added = False
+        self._cs_token = []
 
         for it in self.children:
             it._added = True
 
-        if _children_stack:
-            _children_stack[-1].append(self)
+        if (cs := _children_stack.get(None)) is not None:
+            cs.append(self)
 
     def align(self, parent_align: tuple[float, float]) -> tuple[float, float]:
         a0, a1 = self.props.align
@@ -51,11 +55,12 @@ class Node:
         return a0, a1
 
     def __enter__(self) -> Self:
-        _children_stack.append([])
+        self._cs_token.append(_children_stack.set([]))
         return self
 
     def __exit__(self, *args: Any) -> None:
-        children = _children_stack.pop()
+        children = _children_stack.get()
+        _children_stack.reset(self._cs_token.pop())
         for it in children:
             if isinstance(it, Node) and not it._added:
                 it._added = True
@@ -238,3 +243,12 @@ class EdgeFactory(BaseFactory[EdgeProps, EdgeKeys]):
 
     def props(self, **kwargs: Unpack[EdgeKeys]) -> Self:
         return self._add_props(kwargs)
+
+
+@contextmanager
+def isolate() -> Iterator[None]:
+    token = _children_stack.set([])
+    try:
+        yield
+    finally:
+        _children_stack.reset(token)

@@ -1,4 +1,4 @@
-from diagen import edge, node
+from diagen import edge, isolate, node
 
 
 def type_check_edge_factory_invalid_signature() -> None:
@@ -79,3 +79,24 @@ def test_edge_label_classes() -> None:
     s, t = node(), node()
     e = edge['label-75/10 label-/20'](s, t)
     assert e.props.label_offset == (0.5, 80)
+
+
+def test_function_should_populate_parent_nodes() -> None:
+    def fn() -> None:
+        node('inner')
+
+    with node as s:
+        fn()
+
+    assert s.children[0].label == ['inner']
+
+
+def test_isolated_function_should_not_populate_parent_nodes() -> None:
+    @isolate()
+    def fn() -> None:
+        node('inner')
+
+    with node as s:
+        fn()
+
+    assert not s.children
