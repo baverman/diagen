@@ -246,9 +246,10 @@ class EdgeFactory(BaseFactory[EdgeProps, EdgeKeys]):
 
 
 @contextmanager
-def isolate() -> Iterator[None]:
-    token = _children_stack.set([])
+def node_context() -> Iterator[list[Node]]:
+    nodes: list[Node]
+    token = _children_stack.set(nodes := [])
     try:
-        yield
+        yield nodes
     finally:
         _children_stack.reset(token)

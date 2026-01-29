@@ -1,4 +1,4 @@
-from diagen import edge, isolate, node
+from diagen import edge, node, node_context
 
 
 def type_check_edge_factory_invalid_signature() -> None:
@@ -92,7 +92,7 @@ def test_function_should_populate_parent_nodes() -> None:
 
 
 def test_isolated_function_should_not_populate_parent_nodes() -> None:
-    @isolate()
+    @node_context()
     def fn() -> None:
         node('inner')
 

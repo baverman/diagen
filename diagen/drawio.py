@@ -132,15 +132,14 @@ class JGraph:
 
     @staticmethod
     def make(node: Node) -> element:
-        root_node = base_node(node)
-        root_node.id = '__root__'
+        node.id = '__root__'
 
         root = element(
             'root',
             {},
             [
                 element('mxCell', {'id': '0'}, []),
-                element('mxCell', {'id': '__root__', 'parent': '0'}, []),
+                element('mxCell', {'id': node.id, 'parent': '0'}, []),
             ],
         )
 
@@ -148,7 +147,7 @@ class JGraph:
 
         idcounter = count()
         edges = set()
-        layout = arrange(root_node)
+        layout = arrange(node)
         jgraph = JGraph(layout)
 
         for it in walk(layout):

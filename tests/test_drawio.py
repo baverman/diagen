@@ -2,8 +2,7 @@ from typing import Iterator
 
 import pytest
 
-from diagen import drawio, grid, vgrid
-from diagen.nodes import Node, _children_stack
+from diagen import drawio, grid, node_context, vgrid, wrap
 from diagen.shapes import c4
 
 
@@ -12,10 +11,9 @@ def render(
     request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory
 ) -> Iterator[None]:
     marker = request.node.get_closest_marker('fname')
-    nodes: list[Node]
-    token = _children_stack.set(nodes := [])
 
-    yield
+    with node_context() as nodes:
+        yield
 
     if marker:
         fname = marker.args[0]
@@ -23,9 +21,7 @@ def render(
         fname = request.node.name.removeprefix('test_') + '.drawio'
 
     with open(tmp_path_factory.getbasetemp() / fname, 'w') as f:
-        f.write(drawio.render(nodes[0], compress=False))
-
-    _children_stack.reset(token)
+        f.write(drawio.render(wrap(nodes), compress=False))
 
 
 def test_showcase(render: None) -> None:
@@ -95,4 +91,4 @@ def test_subgrids(render: None) -> None:
             with c4.Boundary['subgrid at-2/2 p-2 gap-8']('B2'):
                 c4.Component('(3, 3)')
                 c4.Component['at-2/2']('(4, 4)')
-        c4.Component('(4, 2)')
+        c4.Component('(5, 2)')
